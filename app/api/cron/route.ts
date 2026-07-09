@@ -5,6 +5,7 @@ import { getDB } from '@/lib/db';
 import fallbackStories from '@/lib/data/fallback-stories.json';
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
 
 async function seedFallbackData() {
   const db = getDB();
