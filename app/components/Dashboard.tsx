@@ -23,8 +23,7 @@ export default function Dashboard({ initialFixtures }: DashboardProps) {
   const {
     fixtures, loading, error, carouselIndices, isAdminOpen,
     isTriggering, triggerLog, prevSlide, nextSlide, setSlideIndex,
-    runPipeline, setIsAdminOpen, fetchFixtures,
-    league: _league, setLeague: _setLeague
+    runPipeline, setIsAdminOpen, fetchFixtures
   } = useFixtures();
 
   const [selectedFixtureId, setSelectedFixtureId] = useState<number | null>(null);

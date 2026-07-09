@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getCompetitionMatches } from '@/lib/services/football';
 import { getDB } from '@/lib/db';
-import fallbackStories from '@/lib/data/fallback-stories.json';
 
 export const dynamic = 'force-dynamic';
 

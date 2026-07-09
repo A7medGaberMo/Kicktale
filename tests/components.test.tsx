@@ -91,8 +91,8 @@ describe('Component smoke tests', () => {
     } as any;
     render(<MatchCard
       fixture={fixture}
-      formatTime={(_: string) => '12:00'}
-      formatDate={(_: string) => 'Today'}
+      formatTime={() => '12:00'}
+      formatDate={() => 'Today'}
     />);
     expect(screen.getByText('Switzerland')).toBeTruthy();
     expect(screen.getByText('Algeria')).toBeTruthy();
