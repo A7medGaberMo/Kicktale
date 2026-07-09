@@ -39,8 +39,9 @@ async function seedFallbackData() {
      102, 'Morocco', '', 103, 'Portugal', '',
      null, 1, 0, new Date().toISOString()]
   );
+  await db.execute('DELETE FROM insights WHERE fixture_id IN (998, 999)');
 
-    for (const story of stories) {
+  for (const story of stories) {
     const fixtureId = story.id <= 2 ? 999 : 998;
     await db.execute(
       `INSERT INTO insights (fixture_id, entity_type, entity_name, insight_type,

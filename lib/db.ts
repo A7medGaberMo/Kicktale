@@ -195,7 +195,7 @@ export function getDB(): DBClient {
     return clientInstance;
   }
 
-  const dbUrl = process.env.DATABASE_URL;
+  const dbUrl = process.env.POSTGRES_URL || process.env.DATABASE_URL;
   if (dbUrl && (dbUrl.startsWith('postgres://') || dbUrl.startsWith('postgresql://'))) {
     clientInstance = new PostgresClient(dbUrl);
   } else {
