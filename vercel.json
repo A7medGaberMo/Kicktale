@@ -1,0 +1,12 @@
+{
+  "crons": [
+    { "path": "/api/cron?league=PL", "schedule": "0,30 * * * *" },
+    { "path": "/api/cron?league=PD", "schedule": "3,33 * * * *" },
+    { "path": "/api/cron?league=SA", "schedule": "6,36 * * * *" },
+    { "path": "/api/cron?league=BL1", "schedule": "9,39 * * * *" },
+    { "path": "/api/cron?league=FL1", "schedule": "12,42 * * * *" },
+    { "path": "/api/cron?league=CL", "schedule": "15,45 * * * *" },
+    { "path": "/api/cron?league=EL", "schedule": "18,48 * * * *" },
+    { "path": "/api/cron?league=WC", "schedule": "21,51 * * * *" }
+  ]
+}
