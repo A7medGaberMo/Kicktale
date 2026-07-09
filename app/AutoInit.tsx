@@ -50,7 +50,7 @@ export default function AutoInit() {
         <div className="kt-nav-brand">
           <img src="/logo.png" alt="Kicktale" className="kt-nav-logo" />
           <span className="kt-nav-title">Kicktale</span>
-          <span className="kt-nav-tagline"> &mdash; The Autonomous War Room</span>
+          <span className="kt-nav-tagline"> &mdash; Every match tells a story.</span>
         </div>
       </nav>
       <div className="kt-empty anim-fade-up">
