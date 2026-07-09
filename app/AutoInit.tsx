@@ -16,12 +16,12 @@ export default function AutoInit() {
     setStatus('Scouting fixtures and generating AI insights...');
     setError(null);
     try {
-      const res = await fetch('/api/cron?league=WC');
+      const res = await fetch('/api/sync?league=WC');
       const data = await res.json();
-      if (data.success && data.processedCount > 0) {
+      if (data.success && data.count > 0) {
         setStatus('Done! Loading dashboard...');
         router.refresh();
-      } else if (data.success && data.processedCount === 0) {
+      } else if (data.success && data.count === 0) {
         setStatus('No upcoming matches found in the 48h window.');
         setError('Try again later or use a different competition.');
         setRunning(false);
