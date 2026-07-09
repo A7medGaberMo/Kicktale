@@ -98,7 +98,7 @@ class SQLiteClient implements DBClient {
 // 2. Postgres Client Implementation (using pg)
 class PostgresClient implements DBClient {
   private pool: import('pg').Pool;
-  private schemaInitialized = false;
+  private initPromise: Promise<void>;
 
   constructor(connectionString: string) {
     const { Pool } = require('pg');
@@ -109,24 +109,37 @@ class PostgresClient implements DBClient {
       }
     }) as import('pg').Pool;
     console.log('Connected to PostgreSQL database.');
-    this.initSchema();
+    this.initPromise = this.initSchema();
+  }
+
+  private async rawQuery(sql: string, params: any[] = []): Promise<any[]> {
+    const pgSql = convertToPostgresSql(sql);
+    const res = await this.pool.query(pgSql, params);
+    return res.rows;
+  }
+
+  private async rawExecute(sql: string, params: any[] = []): Promise<void> {
+    const pgSql = convertToPostgresSql(sql);
+    await this.pool.query(pgSql, params);
   }
 
   private async initSchema() {
-    if (this.schemaInitialized) return;
-    
     try {
-      // Check if table already exists in Postgres
-      const checkTable = await this.query(
+      // Check if both tables exist in Postgres
+      const checkFixtures = await this.rawQuery(
         "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'fixtures'"
       );
-      if (checkTable.length > 0) {
-        this.schemaInitialized = true;
+      const checkInsights = await this.rawQuery(
+        "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'insights'"
+      );
+
+      if (checkFixtures.length > 0 && checkInsights.length > 0) {
         console.log('PostgreSQL database tables already exist. Skipping schema initialization.');
         return;
       }
 
-      await this.execute(`
+      console.log('Initializing PostgreSQL database schema...');
+      await this.rawExecute(`
         CREATE TABLE IF NOT EXISTS fixtures (
           id INTEGER PRIMARY KEY,
           competition_code TEXT,
@@ -148,7 +161,7 @@ class PostgresClient implements DBClient {
         );
       `);
 
-      await this.execute(`
+      await this.rawExecute(`
         CREATE TABLE IF NOT EXISTS insights (
           id SERIAL PRIMARY KEY,
           fixture_id INTEGER,
@@ -164,7 +177,6 @@ class PostgresClient implements DBClient {
           CONSTRAINT fk_fixture FOREIGN KEY(fixture_id) REFERENCES fixtures(id) ON DELETE CASCADE
         );
       `);
-      this.schemaInitialized = true;
       console.log('PostgreSQL database schema initialized successfully.');
     } catch (err: any) {
       console.error('PostgreSQL schema init error:', err.message);
@@ -172,17 +184,17 @@ class PostgresClient implements DBClient {
   }
 
   public async query(sql: string, params: any[] = []): Promise<any[]> {
-    const pgSql = convertToPostgresSql(sql);
-    const res = await this.pool.query(pgSql, params);
-    return res.rows;
+    await this.initPromise;
+    return this.rawQuery(sql, params);
   }
 
   public async execute(sql: string, params: any[] = []): Promise<void> {
-    const pgSql = convertToPostgresSql(sql);
-    await this.pool.query(pgSql, params);
+    await this.initPromise;
+    return this.rawExecute(sql, params);
   }
 
   public async close(): Promise<void> {
+    await this.initPromise;
     await this.pool.end();
   }
 }
