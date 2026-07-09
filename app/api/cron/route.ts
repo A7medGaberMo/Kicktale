@@ -83,12 +83,12 @@ export async function GET(request: Request) {
     }
 
     const now = new Date();
-    const fourteenDaysLater = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000); // 14 days ahead
+    const threeDaysLater = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000); // 3 days ahead
     const twelveHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000); // Process matches from the last 24 hours to capture full-time scores
 
     const targetMatches = matches.filter(match => {
       const matchDate = new Date(match.utcDate);
-      return matchDate >= twelveHoursAgo && matchDate <= fourteenDaysLater;
+      return matchDate >= twelveHoursAgo && matchDate <= threeDaysLater;
     });
 
     console.log(`[Cron] ${targetMatches.length} target fixtures to process.`);
