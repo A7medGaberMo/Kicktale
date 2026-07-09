@@ -16,7 +16,7 @@ export default function AutoInit() {
     setStatus('Scouting fixtures and generating AI insights...');
     setError(null);
     try {
-      const res = await fetch('/api/sync?league=WC');
+      const res = await fetch('/api/sync?league=ALL');
       const data = await res.json();
       if (data.success && data.count > 0) {
         setStatus('Done! Loading dashboard...');

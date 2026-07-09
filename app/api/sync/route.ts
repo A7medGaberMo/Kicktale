@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getCompetitionMatches } from '@/lib/services/football';
+import { getCompetitionMatches, getGeneralMatches } from '@/lib/services/football';
 import { getDB } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
@@ -7,12 +7,21 @@ export const maxDuration = 60;
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const league = searchParams.get('league') || 'WC';
+  const league = searchParams.get('league') || 'ALL';
   
   try {
     const db = getDB();
-    console.log(`[Sync] Fetching basic fixture data for: ${league}`);
-    const matches = await getCompetitionMatches(league);
+    let matches = [];
+    if (league === 'ALL') {
+      const now = new Date();
+      const dateFrom = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const dateTo = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      console.log(`[Sync] Fetching all matches from ${dateFrom} to ${dateTo}`);
+      matches = await getGeneralMatches(dateFrom, dateTo);
+    } else {
+      console.log(`[Sync] Fetching basic fixture data for: ${league}`);
+      matches = await getCompetitionMatches(league);
+    }
 
     if (matches.length === 0) {
       console.log('[Sync] No matches from API. Seeding fallback data fixtures...');
@@ -50,6 +59,9 @@ export async function GET(request: Request) {
         ? `${fixture.score.fullTime.home}-${fixture.score.fullTime.away}`
         : null;
 
+      const compCode = fixture.competition?.code || league;
+      const seasonYear = fixture.season?.year || 2026;
+
       await db.execute(
         `INSERT INTO fixtures (
           id, competition_code, season_year, status, utc_date, stage, group_name,
@@ -71,7 +83,7 @@ export async function GET(request: Request) {
           away_team_crest = excluded.away_team_crest,
           matchday = excluded.matchday`,
         [
-          fixture.id, league, 2026,
+          fixture.id, compCode, seasonYear,
           fixture.status, fixture.utcDate, fixture.stage, fixture.group,
           fixture.homeTeam.id, fixture.homeTeam.name, fixture.homeTeam.crest,
           fixture.awayTeam.id, fixture.awayTeam.name, fixture.awayTeam.crest,

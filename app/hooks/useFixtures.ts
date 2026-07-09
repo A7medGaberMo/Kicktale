@@ -102,7 +102,7 @@ export function useFixtures() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isTriggering, setIsTriggering] = useState(false);
   const [triggerLog, setTriggerLog] = useState<string | null>(null);
-  const [league, setLeague] = useState('PL');
+  const [league, setLeague] = useState('ALL');
 
   const fetchFixtures = useCallback(async (showLoading = false) => {
     try {

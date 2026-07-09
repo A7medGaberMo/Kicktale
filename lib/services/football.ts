@@ -58,6 +58,18 @@ export async function getCompetitionMatches(competitionCode: string): Promise<Ma
   return data.matches || [];
 }
 
+export async function getGeneralMatches(dateFrom?: string, dateTo?: string): Promise<any[]> {
+  let url = 'https://api.football-data.org/v4/matches';
+  const params: string[] = [];
+  if (dateFrom) params.push(`dateFrom=${dateFrom}`);
+  if (dateTo) params.push(`dateTo=${dateTo}`);
+  if (params.length > 0) {
+    url += `?${params.join('&')}`;
+  }
+  const data = await fetchWithRetry(url);
+  return data.matches || [];
+}
+
 export async function getMatchDetails(matchId: number): Promise<any> {
   const url = `https://api.football-data.org/v4/matches/${matchId}`;
   return await fetchWithRetry(url);

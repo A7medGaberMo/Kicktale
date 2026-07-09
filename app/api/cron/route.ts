@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getCompetitionMatches } from '@/lib/services/football';
+import { getCompetitionMatches, getGeneralMatches } from '@/lib/services/football';
 import { runPipelineForFixture, updateSpotlights } from '@/lib/pipeline/run';
 import { getDB } from '@/lib/db';
 import fallbackStories from '@/lib/data/fallback-stories.json';
@@ -65,13 +65,25 @@ async function seedFallbackData() {
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const league = searchParams.get('league') || 'WC';
+  const league = searchParams.get('league') || 'ALL';
   const season = parseInt(searchParams.get('season') || '2026');
   const force = searchParams.get('force') === 'true';
 
   try {
-    console.log(`[Cron] Fetching fixtures for: ${league}, season: ${season}`);
-    const matches = await getCompetitionMatches(league);
+    const now = new Date();
+    const threeDaysLater = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000); // 3 days ahead
+    const twelveHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000); // Process matches from the last 24 hours to capture full-time scores
+
+    let matches = [];
+    if (league === 'ALL') {
+      const dateFrom = twelveHoursAgo.toISOString().split('T')[0];
+      const dateTo = threeDaysLater.toISOString().split('T')[0];
+      console.log(`[Cron] Fetching all fixtures from ${dateFrom} to ${dateTo}`);
+      matches = await getGeneralMatches(dateFrom, dateTo);
+    } else {
+      console.log(`[Cron] Fetching fixtures for: ${league}, season: ${season}`);
+      matches = await getCompetitionMatches(league);
+    }
 
     if (matches.length === 0) {
       console.log('[Cron] No matches from API. Seeding fallback data...');
@@ -83,10 +95,6 @@ export async function GET(request: Request) {
         results: [{ fixture: 'Fallback Data', success: true, insightsCount: 3, message: 'Seeded 7-pillar fallback stories' }]
       });
     }
-
-    const now = new Date();
-    const threeDaysLater = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000); // 3 days ahead
-    const twelveHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000); // Process matches from the last 24 hours to capture full-time scores
 
     const targetMatches = matches.filter(match => {
       const matchDate = new Date(match.utcDate);
@@ -106,7 +114,9 @@ export async function GET(request: Request) {
       }
 
       try {
-        const res = await runPipelineForFixture(match, league, season, force);
+        const compCode = match.competition?.code || league;
+        const seasonYear = match.season?.year || season;
+        const res = await runPipelineForFixture(match, compCode, seasonYear, force);
         results.push({
           fixture: `${match.homeTeam.name} vs ${match.awayTeam.name}`,
           status: match.status,

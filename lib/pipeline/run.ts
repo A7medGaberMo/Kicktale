@@ -302,23 +302,28 @@ export async function runPipelineForFixture(
 export async function updateSpotlights(competitionCode: string): Promise<number | null> {
   const db = getDB();
   try {
+    const isAll = competitionCode === 'ALL';
+    const queryCond = isAll ? '' : 'WHERE competition_code = ?';
+    const updateCond = isAll ? '' : 'WHERE competition_code = ?';
+    const queryParams = isAll ? [] : [competitionCode];
+
     const fixtures = await db.query(
-      `SELECT id FROM fixtures WHERE competition_code = ?`,
-      [competitionCode]
+      `SELECT id FROM fixtures ${queryCond}`,
+      queryParams
     );
 
     if (fixtures.length === 0) return null;
 
     await db.execute(
-      `UPDATE fixtures SET is_spotlight = 0 WHERE competition_code = ?`,
-      [competitionCode]
+      `UPDATE fixtures SET is_spotlight = 0 ${updateCond}`,
+      queryParams
     );
 
     const highestInsight = await db.query(
       `SELECT fixture_id, score FROM insights
-       WHERE fixture_id IN (SELECT id FROM fixtures WHERE competition_code = ?)
+       WHERE fixture_id IN (SELECT id FROM fixtures ${queryCond})
        ORDER BY score DESC LIMIT 1`,
-      [competitionCode]
+      queryParams
     );
 
     if (highestInsight.length > 0) {
