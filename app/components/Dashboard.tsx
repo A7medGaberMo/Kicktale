@@ -35,7 +35,7 @@ export default function Dashboard({ initialFixtures }: DashboardProps) {
       const isFinished = s === 'FINISHED' || s === 'FT' || s === 'COMPLETED' || s === 'AWARDED';
       if (isFinished) {
         const filteredInsights = (f.insights || []).filter(
-          ins => ins.insight_type !== 'StorylinesStakes' && ins.insight_type !== 'Prediction'
+          ins => ins.insight_type !== 'StakesContext' && ins.insight_type !== 'MatchVerdict'
         );
         const scoreDisplay = f.score_fulltime || '';
         const recapInsight: Insight = {

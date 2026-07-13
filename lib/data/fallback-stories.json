@@ -2,7 +2,7 @@
   {
     "id": 1,
     "title": "Switzerland's Unbeaten Run Against Algeria",
-    "insightType": "RecordsMilestones",
+    "insightType": "RecordWatch",
     "desc": "Switzerland are unbeaten in their last 6 meetings with Algeria across all competitions — 4 wins and 2 draws. The last Algerian victory dates back to 1996. In those 6 matches, Switzerland have scored 14 goals while conceding just 3. The pattern is undeniable: Switzerland start fast (scoring first in 5 of those 6), and once ahead, they've never dropped points. For Algeria, this isn't just another group game — it's a 28-year hex they need to break.",
     "entityName": "Switzerland vs Algeria",
     "entityType": "Rivalry"
@@ -10,7 +10,7 @@
   {
     "id": 2,
     "title": "Morocco's Golden Generation Meets Its Test",
-    "insightType": "StorylinesStakes",
+    "insightType": "StakesContext",
     "desc": "This Morocco squad carries the weight of a nation's belief after their historic 2022 World Cup semi-final run. But here's the stat that matters: Morocco have won just 2 of their last 9 matches against European opposition — and both wins came against the same team (Belgium). For the first time, they enter a major tournament not as underdogs but as contenders. The question isn't talent — it's whether this group can handle the shift from hunter to hunted. Portugal, meanwhile, have everything to lose. A squad this deep, with this much individual quality, reaching the knockout stage is the minimum acceptable result.",
     "entityName": "Morocco vs Portugal",
     "entityType": "Match"
@@ -18,7 +18,7 @@
   {
     "id": 3,
     "title": "Argentina's Flawed Defensive Math",
-    "insightType": "FormGuide",
+    "insightType": "FormMomentum",
     "desc": "Argentina's underlying metrics reveal a structural vulnerability. Despite a 4-game unbeaten streak, their xG conceded stands at 1.8 per game. Opposing left wingers average 4.2 successful take-ons per game against Argentina's right flank, where the right-back has been dribbled past 12 times in the last 5 matches. With a tackle success rate dropping to 42% in the defensive third, the numbers suggest their defensive solidity is an illusion waiting to be exposed.",
     "entityName": "Argentina",
     "entityType": "Team"

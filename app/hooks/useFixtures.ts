@@ -4,15 +4,17 @@ import { useState, useEffect, useCallback } from 'react';
 
 export const PILLARS = [
   'H2HHistory',
-  'RecordsMilestones',
-  'FormGuide',
-  'MemorableMeeting',
-  'StorylinesStakes',
-  'TacticalAngle',
-  'Prediction',
-  'VenueConditions',
-  'RefereeWatch',
-  'InjuryImpact',
+  'FormMomentum',
+  'TacticalClash',
+  'KeyBattles',
+  'SquadIntel',
+  'StakesContext',
+  'RecordWatch',
+  'VenueEdge',
+  'ManagerDuel',
+  'SetPieceAngle',
+  'XFactor',
+  'MatchVerdict',
 ] as const;
 
 export type PillarType = (typeof PILLARS)[number];
@@ -189,16 +191,18 @@ export type UseFixturesResult = ReturnType<typeof useFixtures>;
 
 export const PILLAR_META: Record<string, { en: string; icon: string; color: string }> = {
   H2HHistory:        { en: 'H2H History',           icon: '↔', color: '#6366f1' },
-  RecordsMilestones: { en: 'Records & Milestones',   icon: '★', color: '#f59e0b' },
-  FormGuide:         { en: 'Form Guide',             icon: '📊', color: '#10b981' },
-  MemorableMeeting:  { en: 'Memorable Meeting',      icon: '📖', color: '#ec4899' },
-  StorylinesStakes:  { en: 'Stakes & Storylines',    icon: '🔥', color: '#ef4444' },
-  TacticalAngle:     { en: 'Tactical Angle',         icon: '♟', color: '#8b5cf6' },
-  Prediction:        { en: 'Prediction',             icon: '🎯', color: '#06b6d4' },
-  VenueConditions:   { en: 'Venue & Atmosphere',     icon: '🏟', color: '#14b8a6' },
-  RefereeWatch:      { en: 'Referee Watch',          icon: '🟨', color: '#f97316' },
-  InjuryImpact:      { en: 'Injury Impact',          icon: '🩹', color: '#a855f7' },
-  PostMatchRecap:    { en: 'Post-Match Recap',       icon: '🏁', color: '#10b981' },
+  FormMomentum:      { en: 'Form & Momentum',       icon: '📈', color: '#10b981' },
+  TacticalClash:     { en: 'Tactical Clash',        icon: '♟', color: '#8b5cf6' },
+  KeyBattles:        { en: 'Key Battles',           icon: '⚔️', color: '#ef4444' },
+  SquadIntel:        { en: 'Squad Intel',           icon: '🏥', color: '#f59e0b' },
+  StakesContext:     { en: 'Stakes & Context',      icon: '🔥', color: '#f97316' },
+  RecordWatch:       { en: 'Record Watch',          icon: '🏆', color: '#eab308' },
+  VenueEdge:         { en: 'Venue Edge',            icon: '🏟️', color: '#14b8a6' },
+  ManagerDuel:       { en: 'Manager Duel',          icon: '👔', color: '#3b82f6' },
+  SetPieceAngle:     { en: 'Set-Piece Angle',       icon: '🎯', color: '#06b6d4' },
+  XFactor:           { en: 'The X-Factor',          icon: '⚡', color: '#a855f7' },
+  MatchVerdict:      { en: 'Match Verdict',         icon: '⚖️', color: '#ec4899' },
+  PostMatchRecap:    { en: 'Post-Match Recap',      icon: '🏁', color: '#10b981' },
 };
 
 export function getPillarMeta(type: string) {
