@@ -162,7 +162,9 @@ export function useFixtures() {
     try {
       setIsTriggering(true);
       setTriggerLog(`Bootstrapping ${league} fixtures and running AI agents...`);
-      const res = await fetch(`/api/cron?league=${league}&force=${force}`);
+      const res = await fetch(`/api/cron?league=${league}&force=${force}`, {
+        headers: { 'x-admin-key': process.env.NEXT_PUBLIC_CRON_SECRET || '' }
+      });
       const data = await res.json();
       if (data.success) {
         const totalInsights = data.results?.reduce((acc: number, r: any) => acc + (r.insightsCount || 0), 0) || 0;

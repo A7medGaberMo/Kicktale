@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getCompetitionMatches, getGeneralMatches } from '@/lib/services/football';
 import { getDB } from '@/lib/db';
+import { seedFallbackData } from '@/lib/data/seeder';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -25,31 +26,7 @@ export async function GET(request: Request) {
 
     if (matches.length === 0) {
       console.log('[Sync] No matches from API. Seeding fallback data fixtures...');
-      const now = new Date();
-      const kickoff = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-      
-      await db.execute(
-        `INSERT INTO fixtures (id, competition_code, season_year, status, utc_date, stage, group_name,
-          home_team_id, home_team_name, home_team_crest, away_team_id, away_team_name, away_team_crest,
-          score_fulltime, matchday, is_spotlight, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(id) DO NOTHING`,
-        [999, 'WC', 2026, 'SCHEDULED', kickoff.toISOString(), 'GROUP_STAGE', null,
-         100, 'Switzerland', '', 101, 'Algeria', '',
-         null, 1, 1, new Date().toISOString()]
-      );
-
-      await db.execute(
-        `INSERT INTO fixtures (id, competition_code, season_year, status, utc_date, stage, group_name,
-          home_team_id, home_team_name, home_team_crest, away_team_id, away_team_name, away_team_crest,
-          score_fulltime, matchday, is_spotlight, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(id) DO NOTHING`,
-        [998, 'WC', 2026, 'SCHEDULED', new Date(now.getTime() + 48 * 60 * 60 * 1000).toISOString(), 'GROUP_STAGE', null,
-         102, 'Morocco', '', 103, 'Portugal', '',
-         null, 1, 0, new Date().toISOString()]
-      );
-
+      await seedFallbackData();
       return NextResponse.json({ success: true, count: 2, message: 'Seeded fallback fixtures' });
     }
 
@@ -95,6 +72,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ success: true, count: saved, message: `Synced ${saved} fixtures` });
   } catch (err: any) {
-    return NextResponse.json({ success: false, error: err.message }, { status: 500 });
+    console.error('[Sync] Error:', err);
+    return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
   }
 }

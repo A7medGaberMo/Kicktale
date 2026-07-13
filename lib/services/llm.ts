@@ -19,7 +19,7 @@ async function callGroqWithRotation(systemPrompt: string, userPrompt: string, re
   const maxAttempts = Math.min(keys.length, 5);
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const key = keyPool.getKey('groq');
+    const key = await keyPool.getKey('groq');
     try {
       const body: any = {
         model: 'llama-3.3-70b-versatile',
@@ -53,11 +53,11 @@ async function callGroqWithRotation(systemPrompt: string, userPrompt: string, re
       }
 
       const data = await res.json();
-      keyPool.reportSuccess('groq', key);
+      await keyPool.reportSuccess('groq', key);
       return data.choices[0].message.content;
     } catch (err: any) {
       console.warn(`Groq key attempt ${attempt + 1} failed (key starting with: ${key.substring(0, 8)}): ${err.message}`);
-      keyPool.reportFailure('groq', key);
+      await keyPool.reportFailure('groq', key);
       lastError = err;
       // Wait a short delay before trying the next key
       await new Promise(resolve => setTimeout(resolve, 300));
@@ -72,7 +72,7 @@ async function callOpenRouterWithRotation(systemPrompt: string, userPrompt: stri
   let lastError: any = null;
 
   for (let attempt = 0; attempt < keys.length; attempt++) {
-    const key = keyPool.getKey('openrouter');
+    const key = await keyPool.getKey('openrouter');
     try {
       const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
@@ -103,11 +103,11 @@ async function callOpenRouterWithRotation(systemPrompt: string, userPrompt: stri
       }
 
       const data = await res.json();
-      keyPool.reportSuccess('openrouter', key);
+      await keyPool.reportSuccess('openrouter', key);
       return data.choices[0].message.content;
     } catch (err: any) {
       console.warn(`OpenRouter key attempt ${attempt + 1} failed (key starting with: ${key.substring(0, 8)}): ${err.message}`);
-      keyPool.reportFailure('openrouter', key);
+      await keyPool.reportFailure('openrouter', key);
       lastError = err;
       await new Promise(resolve => setTimeout(resolve, 300));
     }

@@ -3,7 +3,7 @@ import { keyPool } from './keys';
 async function fetchWithRetry(url: string, options: RequestInit = {}, retries = 3): Promise<any> {
   let attempts = 0;
   while (attempts < retries) {
-    const key = keyPool.getKey('football_data');
+    const key = await keyPool.getKey('football_data');
     try {
       const response = await fetch(url, {
         ...options,
@@ -17,14 +17,14 @@ async function fetchWithRetry(url: string, options: RequestInit = {}, retries = 
       if (!response.ok) throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
 
       const data = await response.json();
-      keyPool.reportSuccess('football_data', key);
+      await keyPool.reportSuccess('football_data', key);
       return data;
     } catch (error: any) {
       attempts++;
       console.error(`Football-Data API error on attempt ${attempts}:`, error.message);
-      keyPool.reportFailure('football_data', key);
+      await keyPool.reportFailure('football_data', key);
       if (attempts >= retries) throw error;
-      await new Promise(resolve => setTimeout(resolve, 500 * attempts));
+      await new Promise(resolve => setTimeout(resolve, 2000 * Math.pow(2, attempts - 1)));
     }
   }
 }
@@ -59,14 +59,10 @@ export async function getCompetitionMatches(competitionCode: string): Promise<Ma
 }
 
 export async function getGeneralMatches(dateFrom?: string, dateTo?: string): Promise<any[]> {
-  let url = 'https://api.football-data.org/v4/matches';
-  const params: string[] = [];
-  if (dateFrom) params.push(`dateFrom=${dateFrom}`);
-  if (dateTo) params.push(`dateTo=${dateTo}`);
-  if (params.length > 0) {
-    url += `?${params.join('&')}`;
-  }
-  const data = await fetchWithRetry(url);
+  const url = new URL('https://api.football-data.org/v4/matches');
+  if (dateFrom) url.searchParams.append('dateFrom', dateFrom);
+  if (dateTo) url.searchParams.append('dateTo', dateTo);
+  const data = await fetchWithRetry(url.toString());
   return data.matches || [];
 }
 

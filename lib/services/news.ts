@@ -3,7 +3,7 @@ import { keyPool } from './keys';
 async function fetchNewsWithRetry(url: string, retries = 3): Promise<any> {
   let attempts = 0;
   while (attempts < retries) {
-    const key = keyPool.getKey('news_api');
+    const key = await keyPool.getKey('news_api');
     try {
       const fullUrl = `${url}&apiKey=${key}`;
       const response = await fetch(fullUrl);
@@ -14,14 +14,14 @@ async function fetchNewsWithRetry(url: string, retries = 3): Promise<any> {
       const data = await response.json();
       if (data.status === 'error') throw new Error(`NewsAPI Error: ${data.message}`);
 
-      keyPool.reportSuccess('news_api', key);
+      await keyPool.reportSuccess('news_api', key);
       return data;
     } catch (error: any) {
       attempts++;
       console.error(`NewsAPI attempt ${attempts} failed:`, error.message);
-      keyPool.reportFailure('news_api', key);
+      await keyPool.reportFailure('news_api', key);
       if (attempts >= retries) throw error;
-      await new Promise(resolve => setTimeout(resolve, 500 * attempts));
+      await new Promise(resolve => setTimeout(resolve, 2000 * Math.pow(2, attempts - 1)));
     }
   }
 }

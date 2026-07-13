@@ -19,7 +19,7 @@ interface TavilyResponse {
  * Search the web via Tavily — returns real, source-grounded content.
  */
 async function searchWithTavily(query: string, maxResults = 5): Promise<TavilySearchResult[]> {
-  const key = keyPool.getKey('tavily');
+  const key = await keyPool.getKey('tavily');
 
   try {
     const res = await fetch('https://api.tavily.com/search', {
@@ -41,10 +41,10 @@ async function searchWithTavily(query: string, maxResults = 5): Promise<TavilySe
     }
 
     const data: TavilyResponse = await res.json();
-    keyPool.reportSuccess('tavily', key);
+    await keyPool.reportSuccess('tavily', key);
     return data.results || [];
   } catch (err: any) {
-    keyPool.reportFailure('tavily', key);
+    await keyPool.reportFailure('tavily', key);
     console.error(`Tavily search failed for "${query.substring(0, 60)}":`, err.message);
     return [];
   }

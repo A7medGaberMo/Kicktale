@@ -10,7 +10,13 @@ export default async function Home() {
   let loadFailed = false;
 
   try {
-    const fixtures = await db.query(`SELECT * FROM fixtures ORDER BY utc_date ASC`);
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
+    const fixtures = await db.query(
+      `SELECT * FROM fixtures
+       WHERE status NOT IN ('FINISHED', 'FT', 'COMPLETED', 'AWARDED') OR utc_date >= ?
+       ORDER BY utc_date ASC`,
+      [threeDaysAgo]
+    );
 
     if (fixtures.length > 0) {
       const fixtureIds = fixtures.map((f: any) => f.id);

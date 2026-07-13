@@ -203,8 +203,8 @@ export async function runPipelineForFixture(
       console.log('Web search returned real data — grounding insights in verifiable sources.');
     }
 
-    // 5. Discovery — pass rich context across all 10 pillars
-    console.log('Running 10-pillar Discovery Engine with web-grounded data...');
+    // 5. Discovery — pass rich context across all 12 pillars
+    console.log('Running 12-pillar Discovery Engine with web-grounded data...');
     const candidates = await discoverInsights({
       fixture,
       standings,
@@ -302,10 +302,16 @@ export async function runPipelineForFixture(
 export async function updateSpotlights(competitionCode: string): Promise<number | null> {
   const db = getDB();
   try {
+    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
     const isAll = competitionCode === 'ALL';
-    const queryCond = isAll ? '' : 'WHERE competition_code = ?';
+    
+    const queryCond = isAll 
+      ? `WHERE status NOT IN ('FINISHED', 'FT', 'COMPLETED', 'AWARDED') OR utc_date >= ?` 
+      : `WHERE competition_code = ? AND (status NOT IN ('FINISHED', 'FT', 'COMPLETED', 'AWARDED') OR utc_date >= ?)`;
+    const queryParams = isAll ? [threeDaysAgo] : [competitionCode, threeDaysAgo];
+
     const updateCond = isAll ? '' : 'WHERE competition_code = ?';
-    const queryParams = isAll ? [] : [competitionCode];
+    const updateParams = isAll ? [] : [competitionCode];
 
     const fixtures = await db.query(
       `SELECT id FROM fixtures ${queryCond}`,
@@ -316,7 +322,7 @@ export async function updateSpotlights(competitionCode: string): Promise<number 
 
     await db.execute(
       `UPDATE fixtures SET is_spotlight = 0 ${updateCond}`,
-      queryParams
+      updateParams
     );
 
     const highestInsight = await db.query(

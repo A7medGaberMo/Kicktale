@@ -1,69 +1,23 @@
 import { NextResponse } from 'next/server';
 import { getCompetitionMatches, getGeneralMatches } from '@/lib/services/football';
 import { runPipelineForFixture, updateSpotlights } from '@/lib/pipeline/run';
-import { getDB } from '@/lib/db';
-import fallbackStories from '@/lib/data/fallback-stories.json';
+import { seedFallbackData } from '@/lib/data/seeder';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
-async function seedFallbackData() {
-  const db = getDB();
-  const stories = fallbackStories as Array<{
-    id: number; title: string; insightType: string;
-    desc: string; entityName: string; entityType: string;
-  }>;
-
-  const now = new Date();
-  const kickoff = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-
-  // Switzerland vs Algeria (Fixture 999)
-  await db.execute(
-    `INSERT INTO fixtures (id, competition_code, season_year, status, utc_date, stage, group_name,
-      home_team_id, home_team_name, home_team_crest, away_team_id, away_team_name, away_team_crest,
-      score_fulltime, matchday, is_spotlight, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ON CONFLICT(id) DO NOTHING`,
-    [999, 'WC', 2026, 'SCHEDULED', kickoff.toISOString(), 'GROUP_STAGE', null,
-     100, 'Switzerland', '', 101, 'Algeria', '',
-     null, 1, 1, new Date().toISOString()]
-  );
-
-  // Morocco vs Portugal (Fixture 998)
-  await db.execute(
-    `INSERT INTO fixtures (id, competition_code, season_year, status, utc_date, stage, group_name,
-      home_team_id, home_team_name, home_team_crest, away_team_id, away_team_name, away_team_crest,
-      score_fulltime, matchday, is_spotlight, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ON CONFLICT(id) DO NOTHING`,
-    [998, 'WC', 2026, 'SCHEDULED', new Date(now.getTime() + 48 * 60 * 60 * 1000).toISOString(), 'GROUP_STAGE', null,
-     102, 'Morocco', '', 103, 'Portugal', '',
-     null, 1, 0, new Date().toISOString()]
-  );
-  await db.execute('DELETE FROM insights WHERE fixture_id IN (998, 999)');
-
-  for (const story of stories) {
-    const fixtureId = story.id <= 2 ? 999 : 998;
-    await db.execute(
-      `INSERT INTO insights (fixture_id, entity_type, entity_name, insight_type,
-        title, content, evidence,
-        score, confidence, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        fixtureId, story.entityType || 'Match', story.entityName || story.title,
-        story.insightType || 'StorylinesStakes',
-        story.title,
-        story.desc,
-        story.desc.substring(0, 120),
-        80, 0.9, new Date().toISOString()
-      ]
-    );
+export async function GET(request: Request) {
+  // Verify authorization in production to prevent unauthorized pipeline triggers.
+  // Accepts either: Vercel cron Authorization header OR admin key from the dashboard.
+  const cronSecret = process.env.CRON_SECRET;
+  if (cronSecret) {
+    const authHeader = request.headers.get('authorization');
+    const adminKey = request.headers.get('x-admin-key');
+    if (authHeader !== `Bearer ${cronSecret}` && adminKey !== cronSecret) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
   }
 
-  return 2;
-}
-
-export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const league = searchParams.get('league') || 'ALL';
   const season = parseInt(searchParams.get('season') || '2026');
@@ -171,10 +125,10 @@ export async function GET(request: Request) {
         results: [{ fixture: 'Fallback Data', success: true, insightsCount: 3, message: 'Seeded fallback after error: ' + err.message }]
       });
     } catch (seedErr: any) {
+      console.error('[Cron] Fallback seeding also failed:', seedErr);
       return NextResponse.json({
         success: false,
-        error: err.message,
-        fallbackError: seedErr.message
+        error: 'Internal Server Error'
       }, { status: 500 });
     }
   }

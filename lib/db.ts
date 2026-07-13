@@ -7,10 +7,21 @@ export interface DBClient {
   close(): Promise<void>;
 }
 
-// Helper to convert standard ? bindings to Postgres $1, $2, etc.
 function convertToPostgresSql(sql: string): string {
   let paramIndex = 1;
-  return sql.replace(/\?/g, () => `$${paramIndex++}`);
+  let inString = false;
+  let result = '';
+  for (let i = 0; i < sql.length; i++) {
+    if (sql[i] === "'") {
+      inString = !inString;
+      result += sql[i];
+    } else if (sql[i] === '?' && !inString) {
+      result += `$${paramIndex++}`;
+    } else {
+      result += sql[i];
+    }
+  }
+  return result;
 }
 
 // 1. SQLite Native Implementation (using better-sqlite3)
@@ -104,9 +115,12 @@ class PostgresClient implements DBClient {
     const { Pool } = require('pg');
     this.pool = new Pool({
       connectionString,
-      ssl: {
-        rejectUnauthorized: false
-      }
+      max: process.env.POSTGRES_POOL_MAX ? parseInt(process.env.POSTGRES_POOL_MAX) : 5,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 5000,
+      ssl: process.env.POSTGRES_SSL_REJECT_UNAUTHORIZED === 'false' 
+        ? { rejectUnauthorized: false } 
+        : { rejectUnauthorized: true }
     }) as import('pg').Pool;
     console.log('Connected to PostgreSQL database.');
     this.initPromise = this.initSchema();

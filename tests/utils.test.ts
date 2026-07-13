@@ -77,14 +77,14 @@ describe('groupFixturesByDate', () => {
 describe('getPillarCoverage', () => {
   it('returns unique pillar types', () => {
     const insights = [
-      { insight_type: 'Prediction' },
-      { insight_type: 'FormGuide' },
-      { insight_type: 'Prediction' },
+      { insight_type: 'SetPieceAngle' },
+      { insight_type: 'FormMomentum' },
+      { insight_type: 'SetPieceAngle' },
     ] as any[];
     const result = getPillarCoverage(insights);
     expect(result.count).toBe(2);
-    expect(result.pillars).toContain('Prediction');
-    expect(result.pillars).toContain('FormGuide');
+    expect(result.pillars).toContain('SetPieceAngle');
+    expect(result.pillars).toContain('FormMomentum');
   });
 
   it('returns empty for empty insights', () => {
@@ -111,7 +111,7 @@ describe('PILLAR_META', () => {
 
 describe('getPillarMeta', () => {
   it('returns known pillar', () => {
-    const meta = getPillarMeta('Prediction');
+    const meta = getPillarMeta('SetPieceAngle');
     expect(meta.color).toBe('#06b6d4');
   });
 
@@ -123,10 +123,10 @@ describe('getPillarMeta', () => {
 });
 
 describe('PILLARS', () => {
-  it('has all 10 expected pillars', () => {
-    expect(PILLARS).toHaveLength(10);
-    expect(PILLARS).toContain('Prediction');
-    expect(PILLARS).toContain('InjuryImpact');
-    expect(PILLARS).toContain('StorylinesStakes');
+  it('has all 12 expected pillars', () => {
+    expect(PILLARS).toHaveLength(12);
+    expect(PILLARS).toContain('MatchVerdict');
+    expect(PILLARS).toContain('SquadIntel');
+    expect(PILLARS).toContain('StakesContext');
   });
 });

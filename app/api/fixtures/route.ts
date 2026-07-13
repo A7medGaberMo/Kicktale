@@ -3,19 +3,31 @@ import { getDB } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: Request) {
   const db = getDB();
+  const { searchParams } = new URL(request.url);
+  const league = searchParams.get('league') || 'ALL';
 
   try {
     const now = new Date();
     const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString();
 
-    const fixtures = await db.query(
-      `SELECT * FROM fixtures 
-       WHERE status NOT IN ('FINISHED', 'FT', 'COMPLETED', 'AWARDED') OR utc_date >= ? 
-       ORDER BY utc_date ASC`,
-      [threeDaysAgo]
-    );
+    let fixtures;
+    if (league !== 'ALL') {
+      fixtures = await db.query(
+        `SELECT * FROM fixtures
+         WHERE competition_code = ? AND (status NOT IN ('FINISHED', 'FT', 'COMPLETED', 'AWARDED') OR utc_date >= ?)
+         ORDER BY utc_date ASC`,
+        [league, threeDaysAgo]
+      );
+    } else {
+      fixtures = await db.query(
+        `SELECT * FROM fixtures
+         WHERE status NOT IN ('FINISHED', 'FT', 'COMPLETED', 'AWARDED') OR utc_date >= ?
+         ORDER BY utc_date ASC`,
+        [threeDaysAgo]
+      );
+    }
 
     if (fixtures.length === 0) {
       return NextResponse.json({
@@ -25,25 +37,29 @@ export async function GET() {
       });
     }
 
-    // 2. Extract fixture IDs to query all insights in one roundtrip (prevents N+1 query problem)
+    // 2. Extract fixture IDs to query all insights (chunking to prevent SQLITE_MAX_VARIABLE_NUMBER crash)
     const fixtureIds = fixtures.map((f: any) => f.id);
-    const placeholders = fixtureIds.map(() => '?').join(',');
-    
-    const insights = await db.query(
-      `SELECT * FROM insights WHERE fixture_id IN (${placeholders}) ORDER BY score DESC`,
-      fixtureIds
-    );
-
-    // 3. Map insights to their corresponding fixtures in-memory
     const insightsByFixture = new Map<number, any[]>();
-    for (const insight of insights) {
-      const list = insightsByFixture.get(insight.fixture_id) || [];
-      list.push({
-        ...insight,
-        score: parseFloat(insight.score),
-        confidence: parseFloat(insight.confidence)
-      });
-      insightsByFixture.set(insight.fixture_id, list);
+    
+    // Chunk size of 500 is very safe for SQLite's default 999 limit
+    const chunkSize = 500;
+    for (let i = 0; i < fixtureIds.length; i += chunkSize) {
+      const chunk = fixtureIds.slice(i, i + chunkSize);
+      const placeholders = chunk.map(() => '?').join(',');
+      const insights = await db.query(
+        `SELECT * FROM insights WHERE fixture_id IN (${placeholders}) ORDER BY score DESC`,
+        chunk
+      );
+      
+      for (const insight of insights) {
+        const list = insightsByFixture.get(insight.fixture_id) || [];
+        list.push({
+          ...insight,
+          score: parseFloat(insight.score),
+          confidence: parseFloat(insight.confidence)
+        });
+        insightsByFixture.set(insight.fixture_id, list);
+      }
     }
 
     const fixturesWithInsights = fixtures.map((fixture: any) => ({
@@ -61,7 +77,7 @@ export async function GET() {
     console.error('Failed to fetch fixtures:', err);
     return NextResponse.json({
       success: false,
-      error: err.message
+      error: 'Internal Server Error'
     }, { status: 500 });
   }
 }
