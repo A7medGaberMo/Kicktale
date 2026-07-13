@@ -133,7 +133,6 @@ Subject: ${insight.entityName}
 Entity Type: ${insight.entityType}
 Analysis Pillar: ${insight.insightType}
 Raw Evidence: ${insight.evidence}
-Intelligence Score: ${insight.score}/100 | Confidence: ${(insight.confidence * 100).toFixed(0)}%
 
 Transform this into publication-quality content. The evidence above is verified — use it as your statistical foundation.`;
 
