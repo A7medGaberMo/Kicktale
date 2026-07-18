@@ -58,7 +58,7 @@ function validateInsight(
     return false;
   }
   const words = wordCount(narrative.content);
-  if (words < 100 || words > 300) {
+  if (words < 100 || words > 400) {
     console.warn(`Rejected content outside target length (${words} words): [${insight.insightType}] ${insight.entityName}`);
     return false;
   }

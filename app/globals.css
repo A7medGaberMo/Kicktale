@@ -1774,14 +1774,44 @@ button:focus-visible {
 
 /* ==================== RESPONSIVE ==================== */
 @media (max-width: 640px) {
-  .kt-container { padding: 0 16px 32px; }
-  .kt-spotlight { padding: 20px; }
-  .kt-spotlight-title { font-size: 1.2rem; }
+  .kt-container { padding: 0 16px 32px; gap: 20px; }
+  .kt-spotlight { padding: 20px; border-radius: var(--radius-xl); }
+  .kt-spotlight-title { font-size: 1.25rem; line-height: 1.3; }
   .kt-spotlight-grid { gap: 20px; }
-  .kt-nav-title { font-size: 1.1rem; }
+  .kt-nav-title { font-size: 1.15rem; }
   .kt-spotlight-body {
     font-size: 0.88rem;
-    max-height: 280px;
+    max-height: 320px;
+    line-height: 1.65;
+  }
+  .kt-spotlight-crest-box {
+    width: 60px;
+    height: 60px;
+  }
+  .kt-spotlight-crest-img {
+    max-width: 36px;
+    max-height: 36px;
+  }
+  .kt-spotlight-team-name {
+    font-size: 0.78rem;
+  }
+  .kt-spotlight-vs {
+    font-size: 0.65rem;
+    padding: 6px 10px;
+  }
+  .kt-spotlight-score-big {
+    font-size: 1.25rem;
+    padding: 6px 12px;
+  }
+  .kt-spotlight-visual {
+    padding: 20px 16px;
+  }
+  .kt-split {
+    gap: 20px;
+  }
+  .kt-column {
+    padding: 18px;
+    border-radius: var(--radius-lg);
   }
 }
 

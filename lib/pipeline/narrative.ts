@@ -114,7 +114,7 @@ NON-NEGOTIABLE QUALITY STANDARDS (Premium Editorial):
 - Ban all lazy football writing: "must-win", "game of two halves", "clash of the titans", "fierce rivals", "it remains to be seen", "only time will tell", "in what promises to be", "the beautiful game".
 - No emojis, hashtags, slang, or social media tone. This is premium sportswriting.
 - Present tense for match analysis, past tense for historical context.
-- Content density: 150-240 words in 2-4 short paragraphs. Every sentence must add information — no padding. Match a rich ESPN/TNT/Squawka/Opta post, not a long feature.
+- Content density: 250-380 words in 3-4 short paragraphs. Every sentence must add information — no padding. Match a rich ESPN/TNT/Squawka/Opta post, not a long feature.
 - Specificity over generalization: "33% of their goals" not "a lot of their goals". "2.1 xG per game" not "strong attacking numbers".
 - This is pre-match content only. Do not write recap language, post-match verdicts, or phrasing that suggests the match has already finished.
 - Prefer record, milestone, stakes, and hidden-context framing whenever the evidence supports it.
@@ -137,9 +137,10 @@ OUTPUT FORMAT (strict JSON):
 {
   "title": "Headline (5-10 words). Plain text, NO markdown. Must anchor on specific name + number or stat.",
   "paragraphs": [
-    "First paragraph of analysis (60-120 words). Must start with a specific number/stat or key name bolded.",
-    "Second paragraph of analysis (60-120 words). Add supporting data points.",
-    "Third paragraph of analysis (60-120 words, optional). Conclude with match-specific tactical implication."
+    "First paragraph of analysis (80-100 words). Must start with a specific number/stat or key name bolded.",
+    "Second paragraph of analysis (80-100 words). Add supporting data points.",
+    "Third paragraph of analysis (80-100 words). Elaborate on individual player roles or key matchups.",
+    "Fourth paragraph of analysis (80-100 words, optional). Conclude with match-specific tactical implication."
   ],
   "evidence": "Single-line factual summary with the definitive numbers."
 }
