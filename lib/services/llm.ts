@@ -11,6 +11,15 @@ export function cleanJSON(text: string): string {
   return cleaned.trim();
 }
 
+class LLMRequestError extends Error {
+  isClientError: boolean;
+  constructor(message: string, isClientError: boolean) {
+    super(message);
+    this.name = 'LLMRequestError';
+    this.isClientError = isClientError;
+  }
+}
+
 async function callGroqWithRotation(systemPrompt: string, userPrompt: string, responseFormatJson = false): Promise<string> {
   const keys = keyPool.getPool('groq');
   let lastError: any = null;
@@ -28,6 +37,7 @@ async function callGroqWithRotation(systemPrompt: string, userPrompt: string, re
           { role: 'user', content: userPrompt }
         ],
         temperature: 0.3,
+        max_tokens: 1024,
       };
 
       if (responseFormatJson) {
@@ -49,7 +59,8 @@ async function callGroqWithRotation(systemPrompt: string, userPrompt: string, re
 
       if (!res.ok) {
         const errText = await res.text();
-        throw new Error(`Groq HTTP Error ${res.status}: ${errText}`);
+        const isClientError = res.status === 400;
+        throw new LLMRequestError(`Groq HTTP Error ${res.status}: ${errText}`, isClientError);
       }
 
       const data = await res.json();
@@ -57,8 +68,18 @@ async function callGroqWithRotation(systemPrompt: string, userPrompt: string, re
       return data.choices[0].message.content;
     } catch (err: any) {
       console.warn(`Groq key attempt ${attempt + 1} failed (key starting with: ${key.substring(0, 8)}): ${err.message}`);
-      await keyPool.reportFailure('groq', key);
+      
+      const isClientError = err instanceof LLMRequestError && err.isClientError;
+      if (!isClientError) {
+        await keyPool.reportFailure('groq', key);
+      }
+      
       lastError = err;
+      
+      if (isClientError) {
+        break; // Don't try other keys since it's a prompt/format issue
+      }
+      
       // Wait a short delay before trying the next key
       await new Promise(resolve => setTimeout(resolve, 300));
     }
@@ -89,6 +110,7 @@ async function callOpenRouterWithRotation(systemPrompt: string, userPrompt: stri
             { role: 'user', content: userPrompt }
           ],
           temperature: 0.3,
+          max_tokens: 1024,
           response_format: responseFormatJson ? { type: 'json_object' } : undefined
         })
       });
@@ -99,7 +121,8 @@ async function callOpenRouterWithRotation(systemPrompt: string, userPrompt: stri
 
       if (!res.ok) {
         const errText = await res.text();
-        throw new Error(`OpenRouter HTTP Error ${res.status}: ${errText}`);
+        const isClientError = res.status === 400;
+        throw new LLMRequestError(`OpenRouter HTTP Error ${res.status}: ${errText}`, isClientError);
       }
 
       const data = await res.json();
@@ -107,8 +130,18 @@ async function callOpenRouterWithRotation(systemPrompt: string, userPrompt: stri
       return data.choices[0].message.content;
     } catch (err: any) {
       console.warn(`OpenRouter key attempt ${attempt + 1} failed (key starting with: ${key.substring(0, 8)}): ${err.message}`);
-      await keyPool.reportFailure('openrouter', key);
+      
+      const isClientError = err instanceof LLMRequestError && err.isClientError;
+      if (!isClientError) {
+        await keyPool.reportFailure('openrouter', key);
+      }
+      
       lastError = err;
+
+      if (isClientError) {
+        break; // Don't try other keys since it's a prompt/format issue
+      }
+      
       await new Promise(resolve => setTimeout(resolve, 300));
     }
   }

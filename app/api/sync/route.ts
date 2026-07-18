@@ -2,13 +2,14 @@ import { NextResponse } from 'next/server';
 import { getCompetitionMatches, getGeneralMatches } from '@/lib/services/football';
 import { getDB } from '@/lib/db';
 import { seedFallbackData } from '@/lib/data/seeder';
+import { isTopLevelCompetition, normalizeCompetitionCode } from '@/lib/competitions';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const league = searchParams.get('league') || 'ALL';
+  const league = normalizeCompetitionCode(searchParams.get('league') || 'ALL');
   
   try {
     const db = getDB();
@@ -24,6 +25,11 @@ export async function GET(request: Request) {
       matches = await getCompetitionMatches(league);
     }
 
+    matches = matches.filter((fixture: any) => {
+      const compCode = fixture.competition?.code || league;
+      return league === 'ALL' ? isTopLevelCompetition(compCode) : normalizeCompetitionCode(compCode) === league;
+    });
+
     if (matches.length === 0) {
       console.log('[Sync] No matches from API. Seeding fallback data fixtures...');
       await seedFallbackData();
@@ -36,7 +42,7 @@ export async function GET(request: Request) {
         ? `${fixture.score.fullTime.home}-${fixture.score.fullTime.away}`
         : null;
 
-      const compCode = fixture.competition?.code || league;
+      const compCode = normalizeCompetitionCode(fixture.competition?.code || league);
       const seasonYear = fixture.season?.year || 2026;
 
       await db.execute(

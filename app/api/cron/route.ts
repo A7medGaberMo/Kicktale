@@ -2,9 +2,36 @@ import { NextResponse } from 'next/server';
 import { getCompetitionMatches, getGeneralMatches } from '@/lib/services/football';
 import { runPipelineForFixture, updateSpotlights } from '@/lib/pipeline/run';
 import { seedFallbackData } from '@/lib/data/seeder';
+import { isTopLevelCompetition, normalizeCompetitionCode } from '@/lib/competitions';
+import { isFinishedStatus, hasPlayableTeams } from '@/lib/matchFilters';
+import { keyPool } from '@/lib/services/keys';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
+
+function clamp(value: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, value));
+}
+
+async function getAdaptiveBatchLimit() {
+  const configured = parseInt(process.env.CRON_MATCH_BATCH_LIMIT || '', 10);
+  if (Number.isFinite(configured) && configured > 0) {
+    return clamp(configured, 1, 12);
+  }
+
+  const [groqKeys, openRouterKeys, tavilyKeys] = await Promise.all([
+    keyPool.getAvailableKeyCount('groq'),
+    keyPool.getAvailableKeyCount('openrouter'),
+    keyPool.getAvailableKeyCount('tavily'),
+  ]);
+
+  const llmKeys = groqKeys + openRouterKeys;
+  if (llmKeys === 0 || tavilyKeys === 0) return 0;
+
+  const llmCapacity = Math.ceil(llmKeys / 2);
+  const searchCapacity = Math.max(1, tavilyKeys);
+  return clamp(Math.min(llmCapacity, searchCapacity), 1, 6);
+}
 
 export async function GET(request: Request) {
   // Verify authorization in production to prevent unauthorized pipeline triggers.
@@ -19,7 +46,7 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
-  const league = searchParams.get('league') || 'ALL';
+  const league = normalizeCompetitionCode(searchParams.get('league') || 'ALL');
   const season = parseInt(searchParams.get('season') || '2026');
   const force = searchParams.get('force') === 'true';
 
@@ -50,15 +77,36 @@ export async function GET(request: Request) {
       });
     }
 
-    const targetMatches = matches.filter(match => {
+    const scopedMatches = matches.filter(match => {
+      const compCode = match.competition?.code || league;
+      return league === 'ALL' ? isTopLevelCompetition(compCode) : normalizeCompetitionCode(compCode) === league;
+    });
+
+    const matchesInWindow = scopedMatches.filter(match => {
       const matchDate = new Date(match.utcDate);
       return matchDate >= twelveHoursAgo && matchDate <= threeDaysLater;
     });
+    const skippedFinishedCount = matchesInWindow.filter(match => isFinishedStatus(match.status)).length;
+    const skippedTbdCount = matchesInWindow.filter(match => !isFinishedStatus(match.status) && !hasPlayableTeams(match)).length;
+    const targetMatches = matchesInWindow.filter(match => !isFinishedStatus(match.status) && hasPlayableTeams(match));
 
-    console.log(`[Cron] ${targetMatches.length} target fixtures to process.`);
+    console.log(`[Cron] ${targetMatches.length} target fixtures to process. Skipped ${skippedFinishedCount} finished and ${skippedTbdCount} TBD fixtures.`);
 
     const results = [];
-    const BATCH_LIMIT = 2; // Maximum number of full LLM pipeline runs per cron execution
+    const BATCH_LIMIT = await getAdaptiveBatchLimit();
+    if (BATCH_LIMIT === 0) {
+      return NextResponse.json({
+        success: false,
+        processedCount: 0,
+        queuedCount: targetMatches.length,
+        skippedFinishedCount,
+        skippedTbdCount,
+        spotlightFixtureId: null,
+        results: [],
+        error: 'No active LLM or Tavily keys available for generation'
+      }, { status: 503 });
+    }
+    console.log(`[Cron] Adaptive full-run batch limit: ${BATCH_LIMIT}`);
     let fullyProcessedCount = 0;
 
     for (const match of targetMatches) {
@@ -68,7 +116,7 @@ export async function GET(request: Request) {
       }
 
       try {
-        const compCode = match.competition?.code || league;
+        const compCode = normalizeCompetitionCode(match.competition?.code || league);
         const seasonYear = match.season?.year || season;
         const res = await runPipelineForFixture(match, compCode, seasonYear, force);
         results.push({
@@ -110,7 +158,10 @@ export async function GET(request: Request) {
 
     return NextResponse.json({
       success: true,
-      processedCount: targetMatches.length,
+      processedCount: results.length,
+      queuedCount: targetMatches.length,
+      skippedFinishedCount,
+      skippedTbdCount,
       spotlightFixtureId: spotlightId,
       results
     });

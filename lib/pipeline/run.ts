@@ -23,9 +23,21 @@ const GENERIC_PATTERNS = [
   /not (available|found|reported)/i,
 ];
 
+const POST_MATCH_PATTERNS = [
+  /\b(after|following) (the )?(final whistle|match|game)\b/i,
+  /\bpost[- ]match\b/i,
+  /\bfull[- ]time reaction\b/i,
+  /\bended\b/i,
+  /\bfinished\b/i,
+];
+
 function isSubstantiveContent(text: string): boolean {
   if (!text || text.length < 20) return false;
   return !GENERIC_PATTERNS.some(p => p.test(text));
+}
+
+function wordCount(text: string): number {
+  return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
 function validateInsight(
@@ -38,6 +50,25 @@ function validateInsight(
   }
   if (!isSubstantiveContent(insight.evidence)) {
     console.warn(`Rejected insight with weak evidence: [${insight.insightType}] ${insight.entityName}`);
+    return false;
+  }
+  // Reject if content is too short — indicates LLM failure/fallback
+  if (narrative.content.length < 100) {
+    console.warn(`Rejected short content (${narrative.content.length} chars): [${insight.insightType}] ${insight.entityName}`);
+    return false;
+  }
+  const words = wordCount(narrative.content);
+  if (words < 100 || words > 300) {
+    console.warn(`Rejected content outside target length (${words} words): [${insight.insightType}] ${insight.entityName}`);
+    return false;
+  }
+  if (POST_MATCH_PATTERNS.some(p => p.test(narrative.content))) {
+    console.warn(`Rejected post-match phrasing: [${insight.insightType}] ${insight.entityName}`);
+    return false;
+  }
+  // Reject if title starts with "Analysis:" — indicates fallback content
+  if (/^Analysis:/i.test(narrative.title)) {
+    console.warn(`Rejected fallback-titled insight: [${insight.insightType}] ${insight.entityName}`);
     return false;
   }
   return true;
@@ -125,20 +156,25 @@ export async function runPipelineForFixture(
 
     console.log(`[Pipeline] ${fixture.homeTeam.name} vs ${fixture.awayTeam.name} (ID: ${fixture.id})`);
 
-    // 1. Fetch context data
+    // 1. Fetch context data in parallel
     let matchDetails: any = null;
-    try {
-      matchDetails = await getMatchDetails(fixture.id);
-    } catch {
-      console.warn(`Could not fetch details for fixture ${fixture.id}`);
-    }
-
     let standings: any = null;
-    try {
-      standings = await getCompetitionStandings(competitionCode);
-    } catch {
-      console.warn(`Could not fetch standings for ${competitionCode}`);
-    }
+    await Promise.allSettled([
+      (async () => {
+        try {
+          matchDetails = await getMatchDetails(fixture.id);
+        } catch {
+          console.warn(`Could not fetch details for fixture ${fixture.id}`);
+        }
+      })(),
+      (async () => {
+        try {
+          standings = await getCompetitionStandings(competitionCode);
+        } catch {
+          console.warn(`Could not fetch standings for ${competitionCode}`);
+        }
+      })(),
+    ]);
 
     // 2. Build H2H & form context from matchDetails if available
     let h2h: {
@@ -181,11 +217,12 @@ export async function runPipelineForFixture(
       };
     }
 
-    // 3. Fetch and synthesize team news
-    console.log(`Fetching news for ${fixture.homeTeam.name}...`);
-    const homeArticles = await fetchTeamNews(fixture.homeTeam.name);
-    console.log(`Fetching news for ${fixture.awayTeam.name}...`);
-    const awayArticles = await fetchTeamNews(fixture.awayTeam.name);
+    // 3. Fetch and synthesize team news in parallel
+    console.log(`Fetching news for ${fixture.homeTeam.name} and ${fixture.awayTeam.name}...`);
+    const [homeArticles, awayArticles] = await Promise.all([
+      fetchTeamNews(fixture.homeTeam.name),
+      fetchTeamNews(fixture.awayTeam.name)
+    ]);
 
     const [homeNews, awayNews] = await Promise.all([
       synthesizeNews(fixture.homeTeam.name, homeArticles),
@@ -215,8 +252,8 @@ export async function runPipelineForFixture(
       form
     });
 
-    // 6. Rank — no hard cap. Keep all quality insights (up to 25)
-    const ranked = rankInsights(candidates, 0.6, 40, 25);
+    // 6. Rank by editorial value. Keep every quality insight; discovery decides the set.
+    const ranked = rankInsights(candidates, 0.6, 40);
 
     // Count pillars used
     const pillarsUsed = [...new Set(ranked.map(i => i.insightType))];
@@ -240,8 +277,10 @@ export async function runPipelineForFixture(
     let savedCount = 0;
     const savedPillars = new Set<string>();
     
-    for (const insight of ranked) {
+    for (let i = 0; i < ranked.length; i++) {
+      const insight = ranked[i];
       try {
+        if (i > 0) await new Promise(r => setTimeout(r, 500));
         console.log(`Generating narrative: [${insight.insightType}] ${insight.entityName}`);
         const narrative = await generateNarrative(insight);
 
@@ -298,6 +337,7 @@ export async function runPipelineForFixture(
 
 /**
  * Designates the fixture with the highest-scoring insight as today's spotlight.
+ * Prefers upcoming (non-finished) matches over finished ones.
  */
 export async function updateSpotlights(competitionCode: string): Promise<number | null> {
   const db = getDB();
@@ -325,20 +365,32 @@ export async function updateSpotlights(competitionCode: string): Promise<number 
       updateParams
     );
 
-    const highestInsight = await db.query(
+    // Prefer upcoming matches for spotlight — finished matches are stale
+    const upcomingInsight = await db.query(
+      `SELECT i.fixture_id, i.score FROM insights i
+       JOIN fixtures f ON f.id = i.fixture_id
+       WHERE i.fixture_id IN (SELECT id FROM fixtures ${queryCond})
+       AND f.status NOT IN ('FINISHED', 'FT', 'COMPLETED', 'AWARDED')
+       AND f.home_team_name IS NOT NULL AND f.away_team_name IS NOT NULL
+       ORDER BY i.score DESC LIMIT 1`,
+      queryParams
+    );
+
+    // Fallback: any fixture with insights if no upcoming match has them
+    const targetInsight = upcomingInsight.length > 0 ? upcomingInsight : await db.query(
       `SELECT fixture_id, score FROM insights
        WHERE fixture_id IN (SELECT id FROM fixtures ${queryCond})
        ORDER BY score DESC LIMIT 1`,
       queryParams
     );
 
-    if (highestInsight.length > 0) {
-      const spotlightFixtureId = highestInsight[0].fixture_id;
+    if (targetInsight.length > 0) {
+      const spotlightFixtureId = targetInsight[0].fixture_id;
       await db.execute(
         `UPDATE fixtures SET is_spotlight = 1 WHERE id = ?`,
         [spotlightFixtureId]
       );
-      console.log(`Spotlight: Fixture ${spotlightFixtureId} (score: ${highestInsight[0].score})`);
+      console.log(`Spotlight: Fixture ${spotlightFixtureId} (score: ${targetInsight[0].score})`);
       return spotlightFixtureId;
     }
   } catch (err) {

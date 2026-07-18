@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
+import Image from "next/image";
 
 interface HeaderProps {
   onOpenAdmin: () => void;
@@ -20,7 +21,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAdmin, onRefresh }) => {
     <header className="kt-app-header anim-fade-up">
       <nav className="kt-nav">
         <div className="kt-nav-brand">
-          <img src="/logo.png" alt="Kicktale" className="kt-nav-logo" />
+          <Image src="/logo.png" alt="Kicktale" className="kt-nav-logo" width={40} height={40} priority />
           <span className="kt-nav-title">Kicktale</span>
           <span className="kt-nav-tagline"> &mdash; Every match tells a story.</span>
         </div>

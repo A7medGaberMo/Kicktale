@@ -1,12 +1,15 @@
 import { NextResponse } from 'next/server';
 import { getDB } from '@/lib/db';
+import { isTopLevelCompetition, normalizeCompetitionCode } from '@/lib/competitions';
+import { isPublishableInsight } from '@/lib/contentQuality';
+import { isContentEligibleMatch, isFinishedStatus } from '@/lib/matchFilters';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
   const db = getDB();
   const { searchParams } = new URL(request.url);
-  const league = searchParams.get('league') || 'ALL';
+  const league = normalizeCompetitionCode(searchParams.get('league') || 'ALL');
 
   try {
     const now = new Date();
@@ -62,11 +65,30 @@ export async function GET(request: Request) {
       }
     }
 
-    const fixturesWithInsights = fixtures.map((fixture: any) => ({
-      ...fixture,
-      is_spotlight: Boolean(fixture.is_spotlight),
-      insights: insightsByFixture.get(fixture.id) || []
-    }));
+    const fixturesWithInsights = fixtures
+      .filter((f: any) => league === 'ALL'
+        ? isTopLevelCompetition(f.competition_code)
+        : normalizeCompetitionCode(f.competition_code) === league)
+      .map((fixture: any) => ({
+        ...fixture,
+        is_spotlight: Boolean(fixture.is_spotlight),
+        insights: (insightsByFixture.get(fixture.id) || []).filter(isPublishableInsight)
+      }))
+      // Filter out TBD fixtures (no team names) — they have no content value
+      .filter((f: any) => f.home_team_name && f.away_team_name)
+      // Filter out finished matches that have zero insights — they're just clutter
+      .filter((f: any) => {
+        const s = (f.status || '').toUpperCase();
+        const isFinished = isFinishedStatus(s);
+        if (isFinished && f.insights.length === 0) return false;
+        return true;
+      })
+      // Hide stale past fixtures whose status has not been updated by the provider.
+      .filter((f: any) => {
+        if (isFinishedStatus(f.status)) return true;
+        return isContentEligibleMatch(f, now);
+      })
+      .filter((f: any) => f.insights.length > 0);
 
     return NextResponse.json({
       success: true,

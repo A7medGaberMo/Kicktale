@@ -168,7 +168,12 @@ export function useFixtures() {
       const data = await res.json();
       if (data.success) {
         const totalInsights = data.results?.reduce((acc: number, r: any) => acc + (r.insightsCount || 0), 0) || 0;
-        setTriggerLog(`Done! ${data.processedCount} fixtures, ${totalInsights} insights generated.`);
+        const skippedFinished = data.skippedFinishedCount || 0;
+        const skippedTbd = data.skippedTbdCount || 0;
+        setTriggerLog(
+          `Done! ${data.processedCount || 0} queued fixtures, ${totalInsights} insights generated. ` +
+          `Skipped ${skippedFinished} finished and ${skippedTbd} TBD fixtures to save tokens.`
+        );
         fetchFixtures();
       } else {
         setTriggerLog(`Failed: ${data.error}`);
@@ -191,26 +196,24 @@ export function useFixtures() {
 
 export type UseFixturesResult = ReturnType<typeof useFixtures>;
 
-export const PILLAR_META: Record<string, { en: string; icon: string; color: string }> = {
-  H2HHistory:        { en: 'H2H History',           icon: '↔', color: '#6366f1' },
-  FormMomentum:      { en: 'Form & Momentum',       icon: '📈', color: '#10b981' },
-  TacticalClash:     { en: 'Tactical Clash',        icon: '♟', color: '#8b5cf6' },
-  KeyBattles:        { en: 'Key Battles',           icon: '⚔️', color: '#ef4444' },
-  SquadIntel:        { en: 'Squad Intel',           icon: '🏥', color: '#f59e0b' },
-  StakesContext:     { en: 'Stakes & Context',      icon: '🔥', color: '#f97316' },
-  RecordWatch:       { en: 'Record Watch',          icon: '🏆', color: '#eab308' },
-  VenueEdge:         { en: 'Venue Edge',            icon: '🏟️', color: '#14b8a6' },
-  ManagerDuel:       { en: 'Manager Duel',          icon: '👔', color: '#3b82f6' },
-  SetPieceAngle:     { en: 'Set-Piece Angle',       icon: '🎯', color: '#06b6d4' },
-  XFactor:           { en: 'The X-Factor',          icon: '⚡', color: '#a855f7' },
-  MatchVerdict:      { en: 'Match Verdict',         icon: '⚖️', color: '#ec4899' },
-  PostMatchRecap:    { en: 'Post-Match Recap',      icon: '🏁', color: '#10b981' },
+export const PILLAR_META: Record<string, { en: string; color: string }> = {
+  H2HHistory:        { en: 'H2H History',           color: '#6366f1' },
+  FormMomentum:      { en: 'Form & Momentum',       color: '#10b981' },
+  TacticalClash:     { en: 'Tactical Clash',        color: '#8b5cf6' },
+  KeyBattles:        { en: 'Key Battles',           color: '#ef4444' },
+  SquadIntel:        { en: 'Squad Intel',           color: '#f59e0b' },
+  StakesContext:     { en: 'Stakes & Context',      color: '#f97316' },
+  RecordWatch:       { en: 'Record Watch',          color: '#eab308' },
+  VenueEdge:         { en: 'Venue Edge',            color: '#14b8a6' },
+  ManagerDuel:       { en: 'Manager Duel',          color: '#3b82f6' },
+  SetPieceAngle:     { en: 'Set-Piece Angle',       color: '#06b6d4' },
+  XFactor:           { en: 'The X-Factor',          color: '#a855f7' },
+  MatchVerdict:      { en: 'Match Verdict',         color: '#ec4899' },
 };
 
 export function getPillarMeta(type: string) {
   return PILLAR_META[type] || {
     en: type.replace(/([A-Z])/g, ' $1').trim().toUpperCase(),
-    icon: '•',
     color: '#6b7280'
   };
 }

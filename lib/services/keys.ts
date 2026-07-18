@@ -53,6 +53,12 @@ class KeyPoolManager {
     return (this.inMemoryPools[service] || []).map(k => k.key);
   }
 
+  public async getAvailableKeyCount(service: string): Promise<number> {
+    const pool = await this.getStates(service);
+    const now = Date.now();
+    return pool.filter(k => k.blacklistedUntil < now).length;
+  }
+
   private async getStates(service: string): Promise<KeyState[]> {
     if (process.env.KV_REST_API_URL) {
       try {
@@ -86,13 +92,13 @@ class KeyPoolManager {
    * Get an active key for the specified service.
    */
   public async getKey(service: string): Promise<string> {
-    let pool = await this.getStates(service);
+    const pool = await this.getStates(service);
     if (!pool || pool.length === 0) {
       throw new Error(`No key pool found for service: ${service}`);
     }
 
     const now = Date.now();
-    let available = pool.filter(k => k.blacklistedUntil < now);
+    const available = pool.filter(k => k.blacklistedUntil < now);
 
     if (available.length === 0) {
       throw new RateLimitError(`All keys for service "${service}" are rate-limited/blacklisted.`);
@@ -116,7 +122,7 @@ class KeyPoolManager {
    * Mark a key as failed (e.g. rate limit, auth error).
    */
   public async reportFailure(service: string, key: string) {
-    let pool = await this.getStates(service);
+    const pool = await this.getStates(service);
     if (!pool) return;
 
     const state = pool.find(k => k.key === key);
@@ -133,7 +139,7 @@ class KeyPoolManager {
    * Report success for a key, resetting its failures.
    */
   public async reportSuccess(service: string, key: string) {
-    let pool = await this.getStates(service);
+    const pool = await this.getStates(service);
     if (!pool) return;
 
     const state = pool.find(k => k.key === key);

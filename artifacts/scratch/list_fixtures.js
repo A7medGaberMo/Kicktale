@@ -19,5 +19,5 @@ console.log(insights.map(i => ({
   id: i.id,
   fixture_id: i.fixture_id,
   insight_type: i.insight_type,
-  title_en: i.title_en
+  title: i.title
 })));

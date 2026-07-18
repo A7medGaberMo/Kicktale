@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useMemo } from 'react';
+import Image from 'next/image';
 import { SpotlightCard } from './SpotlightCard';
 import { MatchCard } from './MatchCard';
 import { AdminPanel } from './AdminPanel';
@@ -9,7 +10,7 @@ import { EmptyState } from './EmptyState';
 import { DashboardSkeleton } from './Skeleton';
 import AmbientGlow from './AmbientGlow';
 import {
-  Fixture, Insight, useFixtures, groupFixturesByDate,
+  Fixture, useFixtures, groupFixturesByDate,
   getDateGroup, getDateGroupLabel, DateGroup,
 } from '../hooks/useFixtures';
 
@@ -34,29 +35,35 @@ export default function Dashboard({ initialFixtures }: DashboardProps) {
       const s = (f.status || '').toUpperCase();
       const isFinished = s === 'FINISHED' || s === 'FT' || s === 'COMPLETED' || s === 'AWARDED';
       if (isFinished) {
-        const filteredInsights = (f.insights || []).filter(
-          ins => ins.insight_type !== 'StakesContext' && ins.insight_type !== 'MatchVerdict'
-        );
-        const scoreDisplay = f.score_fulltime || '';
-        const recapInsight: Insight = {
-          id: -f.id, entity_type: 'match',
-          entity_name: `${f.home_team_name} vs ${f.away_team_name}`,
-          insight_type: 'PostMatchRecap',
-          title: `Final Verdict: ${f.home_team_name} ${scoreDisplay} ${f.away_team_name}`,
-          content: `The clash between **${f.home_team_name}** and **${f.away_team_name}** has concluded. With the final score settled at **${scoreDisplay}**, the pre-match tactical calculations, predictions, and story stakes are resolved. Focus now shifts to the post-match analysis and future fixtures.`,
-          evidence: `Match completed. Final Score: ${scoreDisplay}.`,
-          score: 98, confidence: 100,
+        return {
+          ...f,
+          insights: (f.insights || []).filter(
+            ins => ins.insight_type !== 'StakesContext' && ins.insight_type !== 'MatchVerdict'
+          )
         };
-        return { ...f, insights: [recapInsight, ...filteredInsights] };
       }
       return f;
     });
   }, [fixtures, initialFixtures]);
 
   const activeSelectedId = useMemo(() => {
-    return selectedFixtureId ?? (
-      allFixtures.find(f => f.is_spotlight)?.id ?? allFixtures[0]?.id ?? null
-    );
+    if (selectedFixtureId) return selectedFixtureId;
+    // Prefer upcoming matches with insights for spotlight
+    const upcomingWithInsights = allFixtures.find(f => {
+      const s = (f.status || '').toUpperCase();
+      const isFinished = s === 'FINISHED' || s === 'FT' || s === 'COMPLETED' || s === 'AWARDED';
+      return !isFinished && f.insights.length > 0 && f.is_spotlight;
+    });
+    if (upcomingWithInsights) return upcomingWithInsights.id;
+    // Fallback: any upcoming with insights
+    const anyUpcoming = allFixtures.find(f => {
+      const s = (f.status || '').toUpperCase();
+      const isFinished = s === 'FINISHED' || s === 'FT' || s === 'COMPLETED' || s === 'AWARDED';
+      return !isFinished && f.insights.length > 0;
+    });
+    if (anyUpcoming) return anyUpcoming.id;
+    // Last resort: any spotlight or first fixture
+    return allFixtures.find(f => f.is_spotlight)?.id ?? allFixtures[0]?.id ?? null;
   }, [selectedFixtureId, allFixtures]);
 
   const selectedFixture = allFixtures.find(f => f.id === activeSelectedId);
@@ -121,7 +128,7 @@ export default function Dashboard({ initialFixtures }: DashboardProps) {
                   onClick={() => handleFixtureSelect(fixture.id)}>
                   <div className="kt-live-team">
                     {fixture.home_team_crest && (
-                      <img src={fixture.home_team_crest} alt={fixture.home_team_name} className="kt-live-crest" />
+                      <Image src={fixture.home_team_crest} alt={fixture.home_team_name} className="kt-live-crest" width={22} height={22} unoptimized />
                     )}
                     <span>{fixture.home_team_name}</span>
                   </div>
@@ -129,7 +136,7 @@ export default function Dashboard({ initialFixtures }: DashboardProps) {
                   <div className="kt-live-team">
                     <span>{fixture.away_team_name}</span>
                     {fixture.away_team_crest && (
-                      <img src={fixture.away_team_crest} alt={fixture.away_team_name} className="kt-live-crest" />
+                      <Image src={fixture.away_team_crest} alt={fixture.away_team_name} className="kt-live-crest" width={22} height={22} unoptimized />
                     )}
                   </div>
                 </div>
@@ -235,7 +242,7 @@ export default function Dashboard({ initialFixtures }: DashboardProps) {
       />
 
       <div className="kt-floating-logo" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-        <img src="/logo.png" alt="Kicktale" />
+        <Image src="/logo.png" alt="Kicktale" width={24} height={24} />
       </div>
     </main>
   );

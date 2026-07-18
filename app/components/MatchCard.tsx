@@ -1,9 +1,18 @@
 "use client";
 
 import React, { useRef, useCallback } from 'react';
+import Image from 'next/image';
 import type { Fixture } from '@/app/hooks/useFixtures';
 import { getPillarMeta } from '@/app/hooks/useFixtures';
-import { PillarIcon } from './PillarIcon';
+
+function sanitizeTitle(raw: string): string {
+  if (!raw) return '';
+  return raw
+    .replace(/^\*\*([\s\S]*?)\*\*$/, '$1')
+    .replace(/\*\*/g, '')
+    .replace(/^Analysis:\s*/i, '')
+    .trim() || raw;
+}
 
 interface MatchCardProps {
   fixture: Fixture;
@@ -60,7 +69,7 @@ export const MatchCard: React.FC<MatchCardProps> = React.memo(({
         <div className="kt-match-team">
           <div className="kt-match-crest-wrap home">
             {fixture.home_team_crest ? (
-              <img src={fixture.home_team_crest} alt={fixture.home_team_name} className="kt-match-crest"
+              <Image src={fixture.home_team_crest} alt={fixture.home_team_name} className="kt-match-crest" width={46} height={46} unoptimized
                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
             ) : (
               <div className="kt-match-crest-fallback">{fixture.home_team_name?.[0] || '?'}</div>
@@ -80,7 +89,7 @@ export const MatchCard: React.FC<MatchCardProps> = React.memo(({
         <div className="kt-match-team">
           <div className="kt-match-crest-wrap away">
             {fixture.away_team_crest ? (
-              <img src={fixture.away_team_crest} alt={fixture.away_team_name} className="kt-match-crest"
+              <Image src={fixture.away_team_crest} alt={fixture.away_team_name} className="kt-match-crest" width={46} height={46} unoptimized
                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
             ) : (
               <div className="kt-match-crest-fallback">{fixture.away_team_name?.[0] || '?'}</div>
@@ -94,7 +103,7 @@ export const MatchCard: React.FC<MatchCardProps> = React.memo(({
 
       {topInsight && (
         <div className="kt-match-snippet">
-          <h4 className="kt-match-snippet-title">{topInsight.title}</h4>
+          <h4 className="kt-match-snippet-title">{sanitizeTitle(topInsight.title)}</h4>
         </div>
       )}
 
@@ -112,7 +121,10 @@ export const MatchCard: React.FC<MatchCardProps> = React.memo(({
               }}
               title={meta.en}
             >
-              <PillarIcon type={ins.insight_type} size={11} />
+              <span style={{
+                width: 7, height: 7, borderRadius: '50%',
+                background: meta.color, display: 'inline-block'
+              }} />
             </span>
           );
         })}
