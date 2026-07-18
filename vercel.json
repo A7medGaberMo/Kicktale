@@ -1,5 +1,5 @@
 {
   "crons": [
-    { "path": "/api/cron?league=ALL", "schedule": "0 */3 * * *" }
+    { "path": "/api/cron?league=ALL", "schedule": "0 5 * * *" }
   ]
 }
