@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState, useCallback, useMemo } from 'react';
-import Image from 'next/image';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { SpotlightCard } from './SpotlightCard';
 import { MatchCard } from './MatchCard';
 import { AdminPanel } from './AdminPanel';
@@ -18,16 +17,17 @@ interface DashboardProps {
   initialFixtures: Fixture[];
 }
 
-const DATE_GROUP_ORDER: DateGroup[] = ['results', 'today', 'tomorrow', 'this_week', 'upcoming'];
+const DATE_GROUP_ORDER: DateGroup[] = ['today', 'tomorrow', 'this_week', 'upcoming'];
 
 export default function Dashboard({ initialFixtures }: DashboardProps) {
   const {
     fixtures, loading, error, carouselIndices, isAdminOpen,
     isTriggering, triggerLog, prevSlide, nextSlide, setSlideIndex,
-    runPipeline, setIsAdminOpen, fetchFixtures
+    runPipeline, setIsAdminOpen, fetchFixtures, league, setLeague
   } = useFixtures();
 
   const [selectedFixtureId, setSelectedFixtureId] = useState<number | null>(null);
+  const [mobileTab, setMobileTab] = useState<'upcoming' | 'results'>('upcoming');
 
   const allFixtures = useMemo(() => {
     const raw = fixtures.length > 0 ? fixtures : (initialFixtures || []);
@@ -47,7 +47,10 @@ export default function Dashboard({ initialFixtures }: DashboardProps) {
   }, [fixtures, initialFixtures]);
 
   const activeSelectedId = useMemo(() => {
-    if (selectedFixtureId) return selectedFixtureId;
+    if (selectedFixtureId) {
+      const exists = allFixtures.some(f => f.id === selectedFixtureId);
+      if (exists) return selectedFixtureId;
+    }
     // Prefer upcoming matches with insights for spotlight
     const upcomingWithInsights = allFixtures.find(f => {
       const s = (f.status || '').toUpperCase();
@@ -55,6 +58,7 @@ export default function Dashboard({ initialFixtures }: DashboardProps) {
       return !isFinished && f.insights.length > 0 && f.is_spotlight;
     });
     if (upcomingWithInsights) return upcomingWithInsights.id;
+
     // Fallback: any upcoming with insights
     const anyUpcoming = allFixtures.find(f => {
       const s = (f.status || '').toUpperCase();
@@ -62,6 +66,7 @@ export default function Dashboard({ initialFixtures }: DashboardProps) {
       return !isFinished && f.insights.length > 0;
     });
     if (anyUpcoming) return anyUpcoming.id;
+
     // Last resort: any spotlight or first fixture
     return allFixtures.find(f => f.is_spotlight)?.id ?? allFixtures[0]?.id ?? null;
   }, [selectedFixtureId, allFixtures]);
@@ -83,26 +88,47 @@ export default function Dashboard({ initialFixtures }: DashboardProps) {
     }).length;
   }, [allFixtures]);
 
-  const resultsCount = useMemo(() => {
+  const resultsFixtures = useMemo(() => {
     return allFixtures.filter((f: Fixture) => {
-      const status = (f.status || '').toUpperCase();
-      return status === 'FINISHED' || status === 'FT' || status === 'COMPLETED' || status === 'AWARDED';
-    }).length;
+      const s = (f.status || '').toUpperCase();
+      return s === 'FINISHED' || s === 'FT' || s === 'COMPLETED' || s === 'AWARDED';
+    });
   }, [allFixtures]);
+
+  const resultsCount = resultsFixtures.length;
 
   const formatDate = useCallback((utc: string) => {
     const d = new Date(utc);
     const group = getDateGroupLabel(getDateGroup(utc));
     if (group === 'Today') return 'Today';
     if (group === 'Tomorrow') return 'Tomorrow';
-    return d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+    return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
   }, []);
 
   const formatTime = useCallback((utc: string) => {
     return new Date(utc).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
   }, []);
 
-  const handleFixtureSelect = useCallback((id: number) => setSelectedFixtureId(id), []);
+  const handleFixtureSelect = useCallback((id: number) => {
+    setSelectedFixtureId(id);
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, []);
+
+  // Keyboard navigation for carousel when active
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!selectedFixture || selectedFixture.insights.length <= 1) return;
+      if (e.key === 'ArrowLeft') {
+        prevSlide(selectedFixture.id, selectedFixture.insights.length);
+      } else if (e.key === 'ArrowRight') {
+        nextSlide(selectedFixture.id, selectedFixture.insights.length);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedFixture, prevSlide, nextSlide]);
 
   if (loading && allFixtures.length === 0) return <DashboardSkeleton />;
   if (error && allFixtures.length === 0) return <EmptyState loading={false} error={error} onRetry={() => fetchFixtures(true)} />;
@@ -111,34 +137,36 @@ export default function Dashboard({ initialFixtures }: DashboardProps) {
   return (
     <main className="kt-container">
       <AmbientGlow />
-      <Header onOpenAdmin={() => setIsAdminOpen(true)} onRefresh={() => fetchFixtures(true)} />
+      <Header
+        onOpenAdmin={() => setIsAdminOpen(true)}
+        onRefresh={() => fetchFixtures(true)}
+        selectedLeague={league}
+        onSelectLeague={setLeague}
+      />
 
+      {/* Live matches horizontal ticker */}
       {liveFixtures.length > 0 && (
         <div className="kt-live-stripe anim-fade-up">
           <div className="kt-live-stripe-label">
-            <span className="kt-match-live-dot" />
+            <span className="kt-live-dot" />
             <span>LIVE NOW</span>
           </div>
           <div className="kt-live-stripe-items">
             {liveFixtures.map(fixture => {
               const isActive = activeSelectedId === fixture.id;
               return (
-                <div key={fixture.id}
+                <div
+                  key={fixture.id}
                   className={`kt-live-item ${isActive ? 'active' : ''}`}
-                  onClick={() => handleFixtureSelect(fixture.id)}>
-                  <div className="kt-live-team">
-                    {fixture.home_team_crest && (
-                      <Image src={fixture.home_team_crest} alt={fixture.home_team_name} className="kt-live-crest" width={22} height={22} unoptimized />
-                    )}
-                    <span>{fixture.home_team_name}</span>
-                  </div>
+                  onClick={() => handleFixtureSelect(fixture.id)}
+                >
+                  <span style={{ fontWeight: 600, color: 'var(--text-1)' }}>
+                    {fixture.home_team_name}
+                  </span>
                   <span className="kt-live-score">{fixture.score_fulltime || '0-0'}</span>
-                  <div className="kt-live-team">
-                    <span>{fixture.away_team_name}</span>
-                    {fixture.away_team_crest && (
-                      <Image src={fixture.away_team_crest} alt={fixture.away_team_name} className="kt-live-crest" width={22} height={22} unoptimized />
-                    )}
-                  </div>
+                  <span style={{ fontWeight: 600, color: 'var(--text-1)' }}>
+                    {fixture.away_team_name}
+                  </span>
                 </div>
               );
             })}
@@ -146,6 +174,7 @@ export default function Dashboard({ initialFixtures }: DashboardProps) {
         </div>
       )}
 
+      {/* Spotlight Hero Article */}
       {selectedFixture ? (
         <section className="anim-fade-up anim-stagger-1">
           <SpotlightCard
@@ -161,21 +190,44 @@ export default function Dashboard({ initialFixtures }: DashboardProps) {
       ) : (
         <div className="kt-empty">
           <div className="kt-spinner" />
-          <p>AI agents are analyzing this match...</p>
+          <p>Analyzing match narratives...</p>
         </div>
       )}
 
+      {/* Mobile View Switcher Tabs (Visible on screens < 992px) */}
+      <div className="kt-dashboard-view-tabs" role="tablist" aria-label="View selection">
+        <button
+          role="tab"
+          aria-selected={mobileTab === 'upcoming'}
+          className={`kt-view-tab ${mobileTab === 'upcoming' ? 'active' : ''}`}
+          onClick={() => setMobileTab('upcoming')}
+        >
+          Upcoming ({upcomingCount})
+        </button>
+        <button
+          role="tab"
+          aria-selected={mobileTab === 'results'}
+          className={`kt-view-tab ${mobileTab === 'results' ? 'active' : ''}`}
+          onClick={() => setMobileTab('results')}
+        >
+          Recent Results ({resultsCount})
+        </button>
+      </div>
+
+      {/* Split Section: Upcoming Fixtures (Left) and Recent Results (Right) */}
       <div className="kt-split anim-fade-up anim-stagger-2">
-        <div className="kt-column">
+        {/* Upcoming Fixtures Column */}
+        <div
+          className="kt-column"
+          style={{ display: typeof window !== 'undefined' && window.innerWidth < 992 && mobileTab !== 'upcoming' ? 'none' : 'block' }}
+        >
           <div className="kt-column-header">
-            <h3 className="kt-column-title">
-              <span className="kt-column-icon upcoming" />
-              Upcoming Fixtures
-            </h3>
+            <h3 className="kt-column-title">Upcoming Fixtures</h3>
             <span className="kt-column-badge gold">{upcomingCount}</span>
           </div>
+
           <div className="kt-column-content">
-            {DATE_GROUP_ORDER.filter(g => g !== 'results').map(group => {
+            {DATE_GROUP_ORDER.map(group => {
               const gf = groupedFixtures.get(group) || [];
               if (gf.length === 0) return null;
               return (
@@ -185,11 +237,13 @@ export default function Dashboard({ initialFixtures }: DashboardProps) {
                     <span className="kt-date-count">{gf.length} match{gf.length !== 1 ? 'es' : ''}</span>
                   </div>
                   <div className="kt-match-grid">
-                    {gf.map((fixture, idx) => (
-                      <div key={fixture.id}
-                        className={`anim-fade-up anim-stagger-${Math.min(idx + 1, 8)}`}
+                    {gf.map((fixture) => (
+                      <div
+                        key={fixture.id}
                         onClick={() => handleFixtureSelect(fixture.id)}
-                        style={{ cursor: 'pointer' }}>
+                        style={{ cursor: 'pointer' }}
+                        className={activeSelectedId === fixture.id ? 'kt-match-selected-wrap' : ''}
+                      >
                         <MatchCard fixture={fixture} formatTime={formatTime} formatDate={formatDate} />
                       </div>
                     ))}
@@ -197,38 +251,36 @@ export default function Dashboard({ initialFixtures }: DashboardProps) {
                 </div>
               );
             })}
-            {upcomingCount === 0 && <div className="kt-column-empty">No upcoming matches scheduled.</div>}
+            {upcomingCount === 0 && <div className="kt-column-empty">No upcoming matches currently scheduled.</div>}
           </div>
         </div>
 
-        <div className="kt-column" style={{ borderColor: 'rgba(16, 185, 129, 0.06)' }}>
+        {/* Recent Results Column */}
+        <div
+          className="kt-column"
+          style={{ display: typeof window !== 'undefined' && window.innerWidth < 992 && mobileTab !== 'results' ? 'none' : 'block' }}
+        >
           <div className="kt-column-header">
-            <h3 className="kt-column-title">
-              <span className="kt-column-icon results" />
-              Recent Results
-            </h3>
+            <h3 className="kt-column-title">Recent Results</h3>
             <span className="kt-column-badge green">{resultsCount}</span>
           </div>
+
           <div className="kt-column-content">
-            {(() => {
-              const gf = allFixtures.filter((f: Fixture) => {
-                const s = (f.status || '').toUpperCase();
-                return s === 'FINISHED' || s === 'FT' || s === 'COMPLETED' || s === 'AWARDED';
-              });
-              if (gf.length === 0) return <div className="kt-column-empty">No recent results available.</div>;
-              return (
-                <div className="kt-match-grid" style={{ gridTemplateColumns: '1fr' }}>
-                  {gf.map((fixture, idx) => (
-                    <div key={fixture.id}
-                      className={`anim-fade-up anim-stagger-${Math.min(idx + 1, 8)}`}
-                      onClick={() => handleFixtureSelect(fixture.id)}
-                      style={{ cursor: 'pointer' }}>
-                      <MatchCard fixture={fixture} formatTime={formatTime} formatDate={formatDate} />
-                    </div>
-                  ))}
-                </div>
-              );
-            })()}
+            {resultsFixtures.length === 0 ? (
+              <div className="kt-column-empty">No recent results recorded.</div>
+            ) : (
+              <div className="kt-match-grid" style={{ gridTemplateColumns: '1fr' }}>
+                {resultsFixtures.map((fixture) => (
+                  <div
+                    key={fixture.id}
+                    onClick={() => handleFixtureSelect(fixture.id)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <MatchCard fixture={fixture} formatTime={formatTime} formatDate={formatDate} />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -241,9 +293,18 @@ export default function Dashboard({ initialFixtures }: DashboardProps) {
         onTrigger={runPipeline}
       />
 
-      <div className="kt-floating-logo" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-        <Image src="/logo.png" alt="Kicktale" width={24} height={24} />
-      </div>
+      {/* Floating Scroll to Top button */}
+      <button
+        className="kt-floating-logo"
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        aria-label="Scroll to top"
+        title="Scroll to top"
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="18 15 12 9 6 15" />
+        </svg>
+      </button>
     </main>
   );
 }
+

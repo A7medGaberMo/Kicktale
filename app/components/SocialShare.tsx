@@ -24,7 +24,12 @@ function stripMarkdown(text: string): string {
 }
 
 export const CopyBlock: React.FC<CopyBlockProps> = ({
-  homeTeam, awayTeam, insightTitle, insightContent, competition, score,
+  homeTeam,
+  awayTeam,
+  insightTitle,
+  insightContent,
+  competition,
+  score,
 }) => {
   const [copied, setCopied] = useState(false);
 
@@ -33,7 +38,6 @@ export const CopyBlock: React.FC<CopyBlockProps> = ({
     const matchup = `${homeTeam} vs ${awayTeam}`;
     const scoreline = score ? ` (${score})` : "";
     const comp = competition ? ` [${competition}]` : "";
-    const tags = `#Kicktale #Football ${competition ? `#${competition}` : ""}`.trim();
 
     return `${insightTitle}
 
@@ -41,41 +45,73 @@ ${matchup}${scoreline}${comp}
 
 ${plainContent}
 
-Kicktale - Every match tells a story.
-${tags}`;
+— Kicktale AI Match Intelligence`;
   }, [competition, homeTeam, awayTeam, insightTitle, insightContent, score]);
 
   const handleCopy = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(copyText);
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(copyText);
+      } else {
+        const textarea = document.createElement("textarea");
+        textarea.value = copyText;
+        textarea.style.position = "fixed";
+        textarea.style.left = "-9999px";
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
       setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
+      setTimeout(() => setCopied(false), 2000);
     } catch {
-      const textarea = document.createElement("textarea");
-      textarea.value = copyText;
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textarea);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
+      setCopied(false);
     }
   }, [copyText]);
 
   return (
     <div className="kt-copy-block">
-      <button className="kt-copy-btn" onClick={handleCopy}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="9" y="9" width="13" height="13" rx="2" />
-          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-        </svg>
-        <span>{copied ? "Copied!" : "Copy Post"}</span>
-        {copied && (
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
+      <button
+        className={`kt-copy-btn ${copied ? "copied" : ""}`}
+        onClick={handleCopy}
+        aria-label="Copy story to clipboard"
+      >
+        {copied ? (
+          <>
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+            <span>Copied to clipboard</span>
+          </>
+        ) : (
+          <>
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            </svg>
+            <span>Copy Narrative</span>
+          </>
         )}
       </button>
     </div>
   );
 };
+

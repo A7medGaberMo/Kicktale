@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useCallback } from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import type { Fixture } from '@/app/hooks/useFixtures';
 import { getPillarMeta } from '@/app/hooks/useFixtures';
@@ -11,6 +11,7 @@ function sanitizeTitle(raw: string): string {
     .replace(/^\*\*([\s\S]*?)\*\*$/, '$1')
     .replace(/\*\*/g, '')
     .replace(/^Analysis:\s*/i, '')
+    .replace(/^["']|["']$/g, '')
     .trim() || raw;
 }
 
@@ -21,41 +22,29 @@ interface MatchCardProps {
 }
 
 export const MatchCard: React.FC<MatchCardProps> = React.memo(({
-  fixture, formatTime, formatDate,
+  fixture,
+  formatTime,
+  formatDate,
 }) => {
   const topInsight = fixture.insights[0];
   const isLive = fixture.status === 'LIVE' || fixture.status === 'IN_PLAY' || fixture.status === 'PAUSED';
   const isFinished = fixture.status === 'FINISHED' || fixture.status === 'FT' || fixture.status === 'COMPLETED' || fixture.status === 'AWARDED';
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    const card = cardRef.current;
-    if (!card) return;
-    const rect = card.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    card.style.transform = `perspective(800px) rotateY(${x * 5}deg) rotateX(${-y * 5}deg) translateY(-3px)`;
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    const card = cardRef.current;
-    if (!card) return;
-    card.style.transform = 'perspective(800px) rotateY(0deg) rotateX(0deg) translateY(0px)';
-  }, []);
+  const [imageErrorHome, setImageErrorHome] = useState(false);
+  const [imageErrorAway, setImageErrorAway] = useState(false);
 
   const displayDate = formatDate(fixture.utc_date);
   const displayTime = formatTime(fixture.utc_date);
 
   return (
-    <article ref={cardRef} className="kt-match"
-      onMouseMove={handleMouseMove} onMouseLeave={handleMouseLeave}>
+    <article className="kt-match">
+      {/* Header: Stage & Status */}
       <div className="kt-match-header">
         <span className="kt-match-stage">
-          {fixture.stage ? fixture.stage.replace(/_/g, " ") : ""}
+          {fixture.stage ? fixture.stage.replace(/_/g, ' ') : fixture.competition_code}
         </span>
         {isLive ? (
           <span className="kt-match-live">
-            <span className="kt-match-live-dot" />
+            <span className="kt-live-dot" />
             LIVE
           </span>
         ) : isFinished ? (
@@ -65,19 +54,31 @@ export const MatchCard: React.FC<MatchCardProps> = React.memo(({
         )}
       </div>
 
+      {/* Teams & Score/VS */}
       <div className="kt-match-teams">
+        {/* Home Team */}
         <div className="kt-match-team">
-          <div className="kt-match-crest-wrap home">
-            {fixture.home_team_crest ? (
-              <Image src={fixture.home_team_crest} alt={fixture.home_team_name} className="kt-match-crest" width={46} height={46} unoptimized
-                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+          <div className="kt-match-crest-wrap">
+            {fixture.home_team_crest && !imageErrorHome ? (
+              <Image
+                src={fixture.home_team_crest}
+                alt={fixture.home_team_name}
+                className="kt-match-crest"
+                width={24}
+                height={24}
+                unoptimized
+                onError={() => setImageErrorHome(true)}
+              />
             ) : (
-              <div className="kt-match-crest-fallback">{fixture.home_team_name?.[0] || '?'}</div>
+              <span className="kt-match-crest-fallback">
+                {fixture.home_team_name?.[0] || 'H'}
+              </span>
             )}
           </div>
-          <span className="kt-match-team-name">{fixture.home_team_name || 'TBD'}</span>
+          <span className="kt-match-team-name">{fixture.home_team_name || 'Home'}</span>
         </div>
 
+        {/* Center Score / VS */}
         <div>
           {(isLive || isFinished) && fixture.score_fulltime ? (
             <span className="kt-match-score">{fixture.score_fulltime}</span>
@@ -86,56 +87,60 @@ export const MatchCard: React.FC<MatchCardProps> = React.memo(({
           )}
         </div>
 
+        {/* Away Team */}
         <div className="kt-match-team">
-          <div className="kt-match-crest-wrap away">
-            {fixture.away_team_crest ? (
-              <Image src={fixture.away_team_crest} alt={fixture.away_team_name} className="kt-match-crest" width={46} height={46} unoptimized
-                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+          <div className="kt-match-crest-wrap">
+            {fixture.away_team_crest && !imageErrorAway ? (
+              <Image
+                src={fixture.away_team_crest}
+                alt={fixture.away_team_name}
+                className="kt-match-crest"
+                width={24}
+                height={24}
+                unoptimized
+                onError={() => setImageErrorAway(true)}
+              />
             ) : (
-              <div className="kt-match-crest-fallback">{fixture.away_team_name?.[0] || '?'}</div>
+              <span className="kt-match-crest-fallback">
+                {fixture.away_team_name?.[0] || 'A'}
+              </span>
             )}
           </div>
-          <span className="kt-match-team-name">{fixture.away_team_name || 'TBD'}</span>
+          <span className="kt-match-team-name">{fixture.away_team_name || 'Away'}</span>
         </div>
       </div>
 
-      <div className="kt-match-date">{displayDate}</div>
-
+      {/* Leading Insight Snippet */}
       {topInsight && (
         <div className="kt-match-snippet">
-          <h4 className="kt-match-snippet-title">{sanitizeTitle(topInsight.title)}</h4>
+          <p className="kt-match-snippet-title">
+            &ldquo;{sanitizeTitle(topInsight.title)}&rdquo;
+          </p>
         </div>
       )}
 
+      {/* Footer: Date & Pillar Depth Dots */}
       <div className="kt-match-footer">
-        {fixture.insights.slice(0, 4).map((ins, idx) => {
-          const meta = getPillarMeta(ins.insight_type);
-          return (
-            <span
-              key={idx}
-              className="kt-match-pillar"
-              style={{
-                color: meta.color,
-                borderColor: `${meta.color}25`,
-                background: `${meta.color}10`
-              }}
-              title={meta.en}
-            >
-              <span style={{
-                width: 7, height: 7, borderRadius: '50%',
-                background: meta.color, display: 'inline-block'
-              }} />
-            </span>
-          );
-        })}
-        {fixture.insights.length > 4 && (
-          <span className="kt-match-pillar-extra">
-            +{fixture.insights.length - 4}
-          </span>
+        <span className="kt-match-date">{displayDate}</span>
+        {fixture.insights.length > 0 && (
+          <div className="kt-match-pillars" title={`${fixture.insights.length} perspectives analyzed`}>
+            {fixture.insights.slice(0, 5).map((ins, idx) => {
+              const meta = getPillarMeta(ins.insight_type);
+              return (
+                <span
+                  key={idx}
+                  className="kt-match-pillar-dot"
+                  style={{ background: meta.color }}
+                  title={meta.en}
+                />
+              );
+            })}
+          </div>
         )}
       </div>
     </article>
   );
 });
 
-MatchCard.displayName = "MatchCard";
+MatchCard.displayName = 'MatchCard';
+

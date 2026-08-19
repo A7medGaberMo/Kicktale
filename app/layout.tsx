@@ -1,23 +1,24 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Outfit } from "next/font/google";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  display: "swap",
 });
 
-const outfit = Outfit({
+const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-outfit",
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  variable: "--font-display",
+  display: "swap",
+  weight: ["500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
-  title: "Kicktale — Every Match Tells a Story",
+  title: "Kicktale — Football Intelligence & Match Narratives",
   description:
-    "AI-powered football intelligence. Discover hidden narratives, record chases, and tactical insights before every match.",
+    "AI-powered football intelligence. Tactical clashes, historical records, and deep match narratives before kickoff.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -25,24 +26,24 @@ export const metadata: Metadata = {
     title: "Kicktale",
   },
   openGraph: {
-    title: "Kicktale",
-    description: "AI-powered football intelligence. Discover hidden narratives before every match.",
+    title: "Kicktale — Football Intelligence",
+    description: "AI-powered match narratives and tactical insights.",
     type: "website",
     siteName: "Kicktale",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Kicktale",
-    description: "AI-powered football intelligence.",
+    title: "Kicktale — Football Intelligence",
+    description: "AI-powered match narratives and tactical insights.",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: [{ media: "(prefers-color-scheme: dark)", color: "#060812" }],
+  themeColor: [{ media: "(prefers-color-scheme: dark)", color: "#090a10" }],
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  userScalable: true,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -51,7 +52,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${outfit.variable}`}>
+    <html lang="en" className={`${inter.variable} ${plusJakarta.variable}`}>
       <head>
         <link rel="icon" href="/logo.png" />
         <link rel="apple-touch-icon" href="/logo.png" />

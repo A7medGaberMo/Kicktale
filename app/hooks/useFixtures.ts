@@ -197,23 +197,36 @@ export function useFixtures() {
 export type UseFixturesResult = ReturnType<typeof useFixtures>;
 
 export const PILLAR_META: Record<string, { en: string; color: string }> = {
-  H2HHistory:        { en: 'H2H History',           color: '#6366f1' },
-  FormMomentum:      { en: 'Form & Momentum',       color: '#10b981' },
-  TacticalClash:     { en: 'Tactical Clash',        color: '#8b5cf6' },
-  KeyBattles:        { en: 'Key Battles',           color: '#ef4444' },
-  SquadIntel:        { en: 'Squad Intel',           color: '#f59e0b' },
+  // Core narrative pillars
+  TacticalClash:     { en: 'Tactical Clash',        color: '#a78bfa' },
+  TacticalMatchup:   { en: 'Tactical Matchup',      color: '#a78bfa' },
+  FormMomentum:      { en: 'Form & Momentum',       color: '#34d399' },
+  FormGuide:         { en: 'Form Guide',            color: '#34d399' },
+  KeyBattles:        { en: 'Key Battles',           color: '#f87171' },
+  H2HHistory:        { en: 'H2H History',           color: '#818cf8' },
+  SquadIntel:        { en: 'Squad Intel',           color: '#fbbf24' },
+  InjuryImpact:      { en: 'Injury Impact',         color: '#fb923c' },
   StakesContext:     { en: 'Stakes & Context',      color: '#f97316' },
-  RecordWatch:       { en: 'Record Watch',          color: '#eab308' },
-  VenueEdge:         { en: 'Venue Edge',            color: '#14b8a6' },
-  ManagerDuel:       { en: 'Manager Duel',          color: '#3b82f6' },
-  SetPieceAngle:     { en: 'Set-Piece Angle',       color: '#06b6d4' },
-  XFactor:           { en: 'The X-Factor',          color: '#a855f7' },
-  MatchVerdict:      { en: 'Match Verdict',         color: '#ec4899' },
+  RecordWatch:       { en: 'Record Watch',          color: '#e2c374' },
+  RecordsMilestones: { en: 'Records & Milestones',  color: '#e2c374' },
+  VenueEdge:         { en: 'Venue Edge',            color: '#2dd4bf' },
+  VenueConditions:   { en: 'Venue & Pitch',         color: '#2dd4bf' },
+  RefereeWatch:      { en: 'Referee Watch',         color: '#f472b6' },
+  ManagerDuel:       { en: 'Manager Duel',          color: '#38bdf8' },
+  SetPieceAngle:     { en: 'Set-Piece Angle',       color: '#22d3ee' },
+  XFactor:           { en: 'The X-Factor',          color: '#c084fc' },
+  MatchVerdict:      { en: 'Match Verdict',         color: '#fb7185' },
 };
 
 export function getPillarMeta(type: string) {
-  return PILLAR_META[type] || {
-    en: type.replace(/([A-Z])/g, ' $1').trim().toUpperCase(),
-    color: '#6b7280'
+  if (PILLAR_META[type]) return PILLAR_META[type];
+  const formatted = type
+    .replace(/([A-Z])/g, ' $1')
+    .trim()
+    .replace(/^./, str => str.toUpperCase());
+  return {
+    en: formatted,
+    color: '#94a3b8'
   };
 }
+
