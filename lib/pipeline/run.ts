@@ -1,10 +1,8 @@
 import { getDB } from '../db';
-import { getMatchDetails, getCompetitionStandings, MatchData } from '../services/football';
-import { fetchTeamNews } from '../services/news';
-import { enrichMatchData } from '../services/search';
-import { synthesizeNews } from './synthesizer';
-import { discoverInsights, rankInsights, DiscoveredInsight } from './discovery';
-import { generateNarrative, GeneratedNarrative } from './narrative';
+import { getMatchDetails, MatchData } from '../services/football';
+import { generateJSON } from '../services/llm';
+import { isTopTeamMatch } from '../matchFilters';
+import { isPublishableInsight } from '../contentQuality';
 
 export interface PipelineResult {
   fixtureId: number;
@@ -14,66 +12,20 @@ export interface PipelineResult {
   pillarsUsed: string[];
 }
 
-const GENERIC_PATTERNS = [
-  /no (data|information|record|milestone|notable|significant|stats|relevant)/i,
-  /nothing (notable|significant|of note)/i,
-  /no (injuries|suspensions|tactical|drama)/i,
-  /failed to (analyze|find|fetch)/i,
-  /could not (find|fetch|retrieve)/i,
-  /not (available|found|reported)/i,
-];
-
-const POST_MATCH_PATTERNS = [
-  /\b(after|following) (the )?(final whistle|match|game)\b/i,
-  /\bpost[- ]match\b/i,
-  /\bfull[- ]time reaction\b/i,
-  /\bended\b/i,
-  /\bfinished\b/i,
-];
-
-function isSubstantiveContent(text: string): boolean {
-  if (!text || text.length < 20) return false;
-  return !GENERIC_PATTERNS.some(p => p.test(text));
+interface LLMStoryStatOutput {
+  insights: {
+    insight_type: 'RecordWatch' | 'FormMomentum' | 'StakesContext';
+    entity_name: string;
+    title: string;
+    content: string;
+    evidence: string;
+  }[];
 }
 
-function wordCount(text: string): number {
-  return text.trim().split(/\s+/).filter(Boolean).length;
-}
-
-function validateInsight(
-  insight: DiscoveredInsight,
-  narrative: GeneratedNarrative
-): boolean {
-  if (!isSubstantiveContent(narrative.content)) {
-    console.warn(`Rejected generic insight: [${insight.insightType}] ${insight.entityName}`);
-    return false;
-  }
-  if (!isSubstantiveContent(insight.evidence)) {
-    console.warn(`Rejected insight with weak evidence: [${insight.insightType}] ${insight.entityName}`);
-    return false;
-  }
-  // Reject if content is too short — indicates LLM failure/fallback
-  if (narrative.content.length < 100) {
-    console.warn(`Rejected short content (${narrative.content.length} chars): [${insight.insightType}] ${insight.entityName}`);
-    return false;
-  }
-  const words = wordCount(narrative.content);
-  if (words < 100 || words > 400) {
-    console.warn(`Rejected content outside target length (${words} words): [${insight.insightType}] ${insight.entityName}`);
-    return false;
-  }
-  if (POST_MATCH_PATTERNS.some(p => p.test(narrative.content))) {
-    console.warn(`Rejected post-match phrasing: [${insight.insightType}] ${insight.entityName}`);
-    return false;
-  }
-  // Reject if title starts with "Analysis:" — indicates fallback content
-  if (/^Analysis:/i.test(narrative.title)) {
-    console.warn(`Rejected fallback-titled insight: [${insight.insightType}] ${insight.entityName}`);
-    return false;
-  }
-  return true;
-}
-
+/**
+ * Single-pass match intelligence generation for top-tier fixtures.
+ * Generates exactly 3 high-impact story stats/insights per fixture in 1 single LLM request.
+ */
 export async function runPipelineForFixture(
   fixture: MatchData,
   competitionCode: string,
@@ -83,9 +35,11 @@ export async function runPipelineForFixture(
   const db = getDB();
 
   try {
-    // Always upsert the fixture basic info (status, scores, crests, etc.) first
-    // to ensure live matches and recently ended matches are up to date.
-    const scoreStr = fixture.score.fullTime.home !== null
+    const homeName = fixture.homeTeam?.name || 'Home';
+    const awayName = fixture.awayTeam?.name || 'Away';
+
+    // 1. Basic fixture upsert
+    const scoreStr = fixture.score?.fullTime?.home !== null && fixture.score?.fullTime?.home !== undefined
       ? `${fixture.score.fullTime.home}-${fixture.score.fullTime.away}`
       : null;
     const createdAtStr = new Date().toISOString();
@@ -119,20 +73,21 @@ export async function runPipelineForFixture(
       ]
     );
 
+    // 2. Cache check: Skip if already populated
     if (!force) {
-      const insights = await db.query('SELECT id FROM insights WHERE fixture_id = ?', [fixture.id]);
-      if (insights.length > 0) {
+      const existing = await db.query('SELECT id FROM insights WHERE fixture_id = ?', [fixture.id]);
+      if (existing.length > 0) {
         return {
           fixtureId: fixture.id,
           success: true,
-          insightsCount: insights.length,
-          message: 'Fixture basic info updated, insights already exist (skipped pipeline)',
+          insightsCount: existing.length,
+          message: 'Insights already cached for this fixture (skipped pipeline)',
           pillarsUsed: []
         };
       }
     }
 
-    const s = fixture.status.toUpperCase();
+    const s = (fixture.status || '').toUpperCase();
     const isFinished = s === 'FINISHED' || s === 'FT' || s === 'COMPLETED' || s === 'AWARDED';
     if (isFinished) {
       return {
@@ -149,182 +104,167 @@ export async function runPipelineForFixture(
         fixtureId: fixture.id,
         success: true,
         insightsCount: 0,
-        message: 'Fixture teams are TBD, skipping insight generation to save tokens',
+        message: 'Teams are TBD, skipping insight generation',
         pillarsUsed: []
       };
     }
 
-    console.log(`[Pipeline] ${fixture.homeTeam.name} vs ${fixture.awayTeam.name} (ID: ${fixture.id})`);
-
-    // 1. Fetch context data in parallel
-    let matchDetails: any = null;
-    let standings: any = null;
-    await Promise.allSettled([
-      (async () => {
-        try {
-          matchDetails = await getMatchDetails(fixture.id);
-        } catch {
-          console.warn(`Could not fetch details for fixture ${fixture.id}`);
-        }
-      })(),
-      (async () => {
-        try {
-          standings = await getCompetitionStandings(competitionCode);
-        } catch {
-          console.warn(`Could not fetch standings for ${competitionCode}`);
-        }
-      })(),
-    ]);
-
-    // 2. Build H2H & form context from matchDetails if available
-    let h2h: {
-      homeWins: number;
-      awayWins: number;
-      draws: number;
-      recentMeetings: string[];
-      homeGoalsAvg: number;
-      awayGoalsAvg: number;
-    } | undefined;
-    let form: {
-      home: { results: string; underlying: string };
-      away: { results: string; underlying: string };
-    } | undefined;
-
-    if (matchDetails) {
-      const h2hData = matchDetails.headToHead;
-      if (h2hData) {
-        h2h = {
-          homeWins: h2hData.homeTeam?.wins ?? 0,
-          awayWins: h2hData.awayTeam?.wins ?? 0,
-          draws: h2hData.draws ?? 0,
-          recentMeetings: (h2hData.matches ?? []).slice(0, 5).map((m: any) =>
-            `${m.homeTeam.name} ${m.homeTeam.fullTime?.home ?? '?'}-${m.awayTeam.fullTime?.away ?? '?'} ${m.awayTeam.name} (${new Date(m.utcDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})`
-          ),
-          homeGoalsAvg: h2hData.homeTeam?.goals ?? 0,
-          awayGoalsAvg: h2hData.awayTeam?.goals ?? 0,
-        };
-      }
-
-      form = {
-        home: {
-          results: matchDetails.homeTeam?.form?.join(', ') ?? 'N/A',
-          underlying: 'Based on match statistics from recent fixtures'
-        },
-        away: {
-          results: matchDetails.awayTeam?.form?.join(', ') ?? 'N/A',
-          underlying: 'Based on match statistics from recent fixtures'
-        }
+    // 3. Filter: Focus on top-tier matches only
+    if (!isTopTeamMatch(fixture)) {
+      return {
+        fixtureId: fixture.id,
+        success: true,
+        insightsCount: 0,
+        message: 'Non-marquee match filtered to preserve focus on top teams',
+        pillarsUsed: []
       };
     }
 
-    // 3. Fetch and synthesize team news in parallel
-    console.log(`Fetching news for ${fixture.homeTeam.name} and ${fixture.awayTeam.name}...`);
-    const [homeArticles, awayArticles] = await Promise.all([
-      fetchTeamNews(fixture.homeTeam.name),
-      fetchTeamNews(fixture.awayTeam.name)
-    ]);
+    console.log(`[Pipeline] Generating 3 Story Stats for: ${homeName} vs ${awayName} (ID: ${fixture.id})`);
 
-    const [homeNews, awayNews] = await Promise.all([
-      synthesizeNews(fixture.homeTeam.name, homeArticles),
-      synthesizeNews(fixture.awayTeam.name, awayArticles)
-    ]);
-
-    // 4. Web search enrichment — real data from the internet
-    console.log('Running web search enrichment (Tavily)...');
-    const webData = await enrichMatchData(
-      fixture.homeTeam.name,
-      fixture.awayTeam.name,
-      competitionCode
-    );
-    if (webData.h2hHistory || webData.recordsMilestones || webData.tacticalAnalysis) {
-      console.log('Web search returned real data — grounding insights in verifiable sources.');
+    // 4. Fetch H2H context if available
+    let h2hSummary = '';
+    try {
+      const matchDetails = await getMatchDetails(fixture.id);
+      if (matchDetails?.headToHead) {
+        const h = matchDetails.headToHead;
+        h2hSummary = `H2H Record: ${homeName} ${h.homeTeam?.wins ?? 0} wins, ${h.draws ?? 0} draws, ${awayName} ${h.awayTeam?.wins ?? 0} wins.`;
+      }
+    } catch {
+      // Optional enhancement, safe to proceed without blocking
     }
 
-    // 5. Discovery — pass rich context across all 12 pillars
-    console.log('Running 12-pillar Discovery Engine with web-grounded data...');
-    const candidates = await discoverInsights({
-      fixture,
-      standings,
-      homeNews,
-      awayNews,
-      webData,
-      h2h,
-      form
-    });
+    // 5. Single-pass LLM prompt for the 3 core story stats
+    const systemPrompt = `You are Kicktale's Chief Football Storyteller — writing premier, fact-anchored football match narratives at the standard of The Athletic and Opta Analyst.
+Kicktale's core ethos is: "Every match tells a story."
 
-    // 6. Rank by editorial value. Keep every quality insight; discovery decides the set.
-    const ranked = rankInsights(candidates, 0.6, 40);
+Generate EXACTLY 3 distinct, high-impact match story insights for this marquee fixture:
 
-    // Count pillars used
-    const pillarsUsed = [...new Set(ranked.map(i => i.insightType))];
-    console.log(`Ranked ${ranked.length} insights across ${pillarsUsed.length} pillars: ${pillarsUsed.join(', ')}`);
+1. "RecordWatch": Landmark milestone, historical dominance, or rivalry record (e.g. unbeaten streak at venue, all-time record chase, landmark goals).
+2. "FormMomentum": Form trajectory, scoring surge, defensive run, or momentum trend entering this match.
+3. "StakesContext": High stakes, title/qualification race implications, or what a win/loss concretely means for both clubs.
 
-    if (ranked.length === 0) {
+CRITICAL RULES:
+- Exactly 3 insights (one for each type: RecordWatch, FormMomentum, StakesContext).
+- NO tactical chalkboard jargon, tactical formation schemes, or news gossip. Focus purely on compelling stats, records, form, and stakes.
+- Titles must be 5-10 word high-impact headlines with NO markdown asterisks, hashes, or quotes. Anchor on specific numbers and names.
+- Content must be concise and punchy: 50-90 words in 1 tight paragraph with bolded numbers.
+- Evidence must be a single crisp sentence stating the key quantitative stat.
+- Do NOT include internal scores, confidence percentages, or the word "Analysis:".
+
+OUTPUT FORMAT (strict JSON):
+{
+  "insights": [
+    {
+      "insight_type": "RecordWatch",
+      "entity_name": "${homeName} vs ${awayName}",
+      "title": "Clean Punchy Headline Anchored On Stat",
+      "content": "Concise, punchy analytical paragraph (50-90 words) with **bolded numbers** and key historical/milestone facts.",
+      "evidence": "Specific stat: e.g. Unbeaten in 14 home meetings since 2018."
+    },
+    {
+      "insight_type": "FormMomentum",
+      "entity_name": "${homeName}",
+      "title": "Clean Headline On Form And Momentum",
+      "content": "Concise paragraph (50-90 words) analyzing current form streak and scoring momentum.",
+      "evidence": "Specific stat: e.g. 19 points from last 21 available with 2.4 goals per game."
+    },
+    {
+      "insight_type": "StakesContext",
+      "entity_name": "${awayName}",
+      "title": "Clean Headline On Match Stakes And Permutations",
+      "content": "Concise paragraph (50-90 words) analyzing table stakes and qualification consequences.",
+      "evidence": "Specific stat: e.g. A win opens a 5-point gap in the Champions League qualification race."
+    }
+  ]
+}`;
+
+
+    const userPrompt = `Fixture: ${homeName} vs ${awayName}
+Competition: ${competitionCode}
+Kickoff: ${fixture.utcDate}
+${h2hSummary ? `Official Data: ${h2hSummary}` : ''}
+
+Synthesize the 3 premier story stats for this fixture now.`;
+
+    const llmResponse = await generateJSON<LLMStoryStatOutput>(systemPrompt, userPrompt);
+    const generatedInsights = (llmResponse.insights || []).slice(0, 3);
+
+    if (generatedInsights.length === 0) {
       return {
         fixtureId: fixture.id,
         success: false,
         insightsCount: 0,
-        message: 'No insights passed quality threshold',
+        message: 'LLM returned no insights',
         pillarsUsed: []
       };
     }
 
-    // 7. Basic fixture info is already upserted at the start.
-
-    // 8. Generate narratives, validate, and save
+    // 6. Delete old insights and insert the 3 new insights
     await db.execute('DELETE FROM insights WHERE fixture_id = ?', [fixture.id]);
 
     let savedCount = 0;
-    const savedPillars = new Set<string>();
-    
-    for (let i = 0; i < ranked.length; i++) {
-      const insight = ranked[i];
-      try {
-        if (i > 0) await new Promise(r => setTimeout(r, 500));
-        console.log(`Generating narrative: [${insight.insightType}] ${insight.entityName}`);
-        const narrative = await generateNarrative(insight);
+    const pillarsUsed: string[] = [];
 
-        // Skip generic/empty content — only substantive insights reach the UI
-        if (!validateInsight(insight, narrative)) continue;
+    for (const item of generatedInsights) {
+      const cleanTitle = (item.title || '')
+        .replace(/\*\*/g, '')
+        .replace(/^#+\s*/, '')
+        .replace(/^["']|["']$/g, '')
+        .replace(/^Analysis:\s*/i, '')
+        .trim();
 
-        savedPillars.add(insight.insightType);
-        await db.execute(
-          `INSERT INTO insights (
-            fixture_id, entity_type, entity_name, insight_type,
-            title, content, evidence,
-            score, confidence, created_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            fixture.id,
-            insight.entityType,
-            insight.entityName,
-            insight.insightType,
-            narrative.title,
-            narrative.content,
-            narrative.evidence,
-            insight.score,
-            insight.confidence,
-            createdAtStr
-          ]
-        );
-        savedCount++;
-      } catch (err: any) {
-        console.error(`Narrative generation failed for ${insight.insightType}. Early stop triggered. Error:`, err.message);
-        break; // Stop safely, preserve what we saved
+      const cleanContent = (item.content || '')
+        .replace(/^Analysis:\s*/i, '')
+        .replace(/\b\d+\/100 score\b/gi, '')
+        .replace(/\b\d+%\s*confidence\b/gi, '')
+        .trim();
+
+      const candidate = {
+        fixture_id: fixture.id,
+        entity_type: 'Match',
+        entity_name: item.entity_name || `${homeName} vs ${awayName}`,
+        insight_type: item.insight_type || 'RecordWatch',
+        title: cleanTitle,
+        content: cleanContent,
+        evidence: item.evidence || cleanTitle,
+        score: 90,
+        confidence: 0.95
+      };
+
+      if (!isPublishableInsight(candidate)) {
+        if (cleanContent.length < 50 || cleanTitle.length < 5) continue;
       }
+
+      await db.execute(
+        `INSERT INTO insights (
+          fixture_id, entity_type, entity_name, insight_type,
+          title, content, evidence,
+          score, confidence, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          candidate.fixture_id, candidate.entity_type, candidate.entity_name,
+          candidate.insight_type, candidate.title, candidate.content,
+          candidate.evidence, candidate.score, candidate.confidence,
+          createdAtStr
+        ]
+      );
+
+      savedCount++;
+      pillarsUsed.push(candidate.insight_type);
     }
 
-    console.log(`Completed pipeline for fixture ${fixture.id}: ${savedCount} insights saved (${ranked.length - savedCount} rejected or aborted)`);
+    console.log(`[Pipeline] Successfully saved ${savedCount} story stats for ${homeName} vs ${awayName}`);
     return {
       fixtureId: fixture.id,
       success: savedCount > 0,
       insightsCount: savedCount,
-      message: `Generated and saved ${savedCount} insights (out of ${ranked.length})`,
-      pillarsUsed: [...savedPillars]
+      message: `Generated and saved ${savedCount} story stats in 1 single-pass request`,
+      pillarsUsed
     };
 
   } catch (err: any) {
-    console.error(`Pipeline failure for fixture ${fixture.id}:`, err);
+    console.error(`Pipeline failure for fixture ${fixture.id}:`, err.message);
     return {
       fixtureId: fixture.id,
       success: false,
@@ -336,22 +276,18 @@ export async function runPipelineForFixture(
 }
 
 /**
- * Designates the fixture with the highest-scoring insight as today's spotlight.
- * Prefers upcoming (non-finished) matches over finished ones.
+ * Designates the upcoming marquee fixture with insights as today's spotlight.
  */
-export async function updateSpotlights(competitionCode: string): Promise<number | null> {
+export async function updateSpotlights(competitionCode = 'ALL'): Promise<number | null> {
   const db = getDB();
   try {
     const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString();
     const isAll = competitionCode === 'ALL';
-    
-    const queryCond = isAll 
-      ? `WHERE status NOT IN ('FINISHED', 'FT', 'COMPLETED', 'AWARDED') OR utc_date >= ?` 
+
+    const queryCond = isAll
+      ? `WHERE status NOT IN ('FINISHED', 'FT', 'COMPLETED', 'AWARDED') OR utc_date >= ?`
       : `WHERE competition_code = ? AND (status NOT IN ('FINISHED', 'FT', 'COMPLETED', 'AWARDED') OR utc_date >= ?)`;
     const queryParams = isAll ? [threeDaysAgo] : [competitionCode, threeDaysAgo];
-
-    const updateCond = isAll ? '' : 'WHERE competition_code = ?';
-    const updateParams = isAll ? [] : [competitionCode];
 
     const fixtures = await db.query(
       `SELECT id FROM fixtures ${queryCond}`,
@@ -361,40 +297,41 @@ export async function updateSpotlights(competitionCode: string): Promise<number 
     if (fixtures.length === 0) return null;
 
     await db.execute(
-      `UPDATE fixtures SET is_spotlight = 0 ${updateCond}`,
-      updateParams
+      `UPDATE fixtures SET is_spotlight = 0 ${isAll ? '' : 'WHERE competition_code = ?'}`,
+      isAll ? [] : [competitionCode]
     );
 
-    // Prefer upcoming matches for spotlight — finished matches are stale
-    const upcomingInsight = await db.query(
-      `SELECT i.fixture_id, i.score FROM insights i
-       JOIN fixtures f ON f.id = i.fixture_id
-       WHERE i.fixture_id IN (SELECT id FROM fixtures ${queryCond})
-       AND f.status NOT IN ('FINISHED', 'FT', 'COMPLETED', 'AWARDED')
+    // Prefer upcoming match with 3 insights
+    const upcoming = await db.query(
+      `SELECT f.id, COUNT(i.id) as insight_count
+       FROM fixtures f
+       JOIN insights i ON i.fixture_id = f.id
+       WHERE f.status NOT IN ('FINISHED', 'FT', 'COMPLETED', 'AWARDED')
        AND f.home_team_name IS NOT NULL AND f.away_team_name IS NOT NULL
-       ORDER BY i.score DESC LIMIT 1`,
-      queryParams
+       GROUP BY f.id
+       ORDER BY insight_count DESC, f.utc_date ASC
+       LIMIT 1`
     );
 
-    // Fallback: any fixture with insights if no upcoming match has them
-    const targetInsight = upcomingInsight.length > 0 ? upcomingInsight : await db.query(
-      `SELECT fixture_id, score FROM insights
-       WHERE fixture_id IN (SELECT id FROM fixtures ${queryCond})
-       ORDER BY score DESC LIMIT 1`,
-      queryParams
+    if (upcoming.length > 0) {
+      const spotlightId = upcoming[0].id;
+      await db.execute('UPDATE fixtures SET is_spotlight = 1 WHERE id = ?', [spotlightId]);
+      return spotlightId;
+    }
+
+    // Fallback: any match with insights
+    const anyFixture = await db.query(
+      `SELECT fixture_id FROM insights ORDER BY created_at DESC LIMIT 1`
     );
 
-    if (targetInsight.length > 0) {
-      const spotlightFixtureId = targetInsight[0].fixture_id;
-      await db.execute(
-        `UPDATE fixtures SET is_spotlight = 1 WHERE id = ?`,
-        [spotlightFixtureId]
-      );
-      console.log(`Spotlight: Fixture ${spotlightFixtureId} (score: ${targetInsight[0].score})`);
-      return spotlightFixtureId;
+    if (anyFixture.length > 0) {
+      const spotlightId = anyFixture[0].fixture_id;
+      await db.execute('UPDATE fixtures SET is_spotlight = 1 WHERE id = ?', [spotlightId]);
+      return spotlightId;
     }
   } catch (err) {
     console.error('Failed to update spotlights:', err);
   }
   return null;
 }
+

@@ -1,16 +1,8 @@
-const VALID_INSIGHT_TYPES = new Set([
+export const VALID_INSIGHT_TYPES = new Set([
+  'RecordWatch',
   'H2HHistory',
   'FormMomentum',
-  'TacticalClash',
-  'KeyBattles',
-  'SquadIntel',
   'StakesContext',
-  'RecordWatch',
-  'VenueEdge',
-  'ManagerDuel',
-  'SetPieceAngle',
-  'XFactor',
-  'MatchVerdict',
 ]);
 
 const BAD_CONTENT_PATTERNS = [
@@ -28,11 +20,11 @@ const BAD_CONTENT_PATTERNS = [
   /\bclash of (the )?titans\b/i,
 ];
 
-function countWords(text: string) {
+function countWords(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
-export function isPublishableInsight(insight: any) {
+export function isPublishableInsight(insight: any): boolean {
   const title = String(insight.title || '').trim();
   const content = String(insight.content || '').trim();
   const evidence = String(insight.evidence || '').trim();
@@ -40,10 +32,12 @@ export function isPublishableInsight(insight: any) {
 
   if (!VALID_INSIGHT_TYPES.has(insight.insight_type)) return false;
   if (!title || title.split(/\s+/).length < 3) return false;
-  if (!content || words < 100 || words > 300) return false;
-  if (!evidence || evidence.length < 30) return false;
+  if (!content || words < 25 || words > 150) return false;
+  if (!evidence || evidence.length < 15) return false;
   if (BAD_CONTENT_PATTERNS.some(pattern => pattern.test(title) || pattern.test(content) || pattern.test(evidence))) {
     return false;
   }
   return true;
 }
+
+

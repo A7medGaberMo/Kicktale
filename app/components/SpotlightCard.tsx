@@ -7,19 +7,16 @@ import { getPillarMeta } from "@/app/hooks/useFixtures";
 import ReactMarkdown from "react-markdown";
 import { CopyBlock } from "./SocialShare";
 
-/** Strip raw markdown artifacts, quotes, and "Analysis:" prefixes from titles */
 function sanitizeTitle(raw: string): string {
   if (!raw) return "";
-  const t = raw
+  return raw
     .replace(/^\*\*([\s\S]*?)\*\*$/, "$1")
     .replace(/\*\*/g, "")
     .replace(/^Analysis:\s*/i, "")
     .replace(/^["']|["']$/g, "")
-    .trim();
-  return t || raw;
+    .trim() || raw;
 }
 
-/** Clean content of leaked internal prompt metrics and formatting issues */
 function sanitizeContent(raw: string): string {
   if (!raw) return "";
   return raw
@@ -54,14 +51,13 @@ export const SpotlightCard: React.FC<SpotlightCardProps> = React.memo(({
   formatTime,
   formatDate,
 }) => {
-  const activeInsight = fixture.insights[activeIndex];
+  const activeInsight = fixture.insights[activeIndex] || fixture.insights[0];
   const isLive = fixture.status === "LIVE" || fixture.status === "IN_PLAY" || fixture.status === "PAUSED";
   const isFinished = fixture.status === "FINISHED" || fixture.status === "FT" || fixture.status === "COMPLETED" || fixture.status === "AWARDED";
   const [imageErrorHome, setImageErrorHome] = useState(false);
   const [imageErrorAway, setImageErrorAway] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
-  // Reset image errors when fixture changes
   useEffect(() => {
     setImageErrorHome(false);
     setImageErrorAway(false);
@@ -70,13 +66,12 @@ export const SpotlightCard: React.FC<SpotlightCardProps> = React.memo(({
   if (!activeInsight) {
     return (
       <div className="kt-empty">
-        <p>No insights currently generated for this fixture.</p>
+        <p>No story stats currently generated for this fixture.</p>
       </div>
     );
   }
 
   const pillarMeta = getPillarMeta(activeInsight.insight_type);
-  const pillarCoverage = [...new Set(fixture.insights.map((i) => i.insight_type))];
   const totalInsights = fixture.insights.length;
 
   return (
@@ -114,7 +109,7 @@ export const SpotlightCard: React.FC<SpotlightCardProps> = React.memo(({
               </svg>
             </button>
             <span className="kt-spotlight-counter">
-              {activeIndex + 1} / {totalInsights}
+              {activeIndex + 1} of {totalInsights}
             </span>
             <button
               className="kt-spotlight-nav-btn"
@@ -149,7 +144,7 @@ export const SpotlightCard: React.FC<SpotlightCardProps> = React.memo(({
           />
         </div>
 
-        {/* Visual Matchup Card & Pillar Switcher */}
+        {/* Visual Matchup Card & 3-Story Tab Switcher */}
         <div className="kt-spotlight-visual">
           <div className="kt-spotlight-matchup">
             {/* Home Team */}
@@ -215,22 +210,19 @@ export const SpotlightCard: React.FC<SpotlightCardProps> = React.memo(({
             )}
           </div>
 
-          {/* Pillar Switcher Segmented Tabs */}
-          {pillarCoverage.length > 1 && (
-            <div className="kt-spotlight-pillars" role="tablist" aria-label="Insight perspectives">
-              {pillarCoverage.map((pillar) => {
-                const meta = getPillarMeta(pillar);
-                const isActive = activeInsight.insight_type === pillar;
+          {/* 3 Core Story Tab Switcher */}
+          {totalInsights > 1 && (
+            <div className="kt-spotlight-pillars" role="tablist" aria-label="Match stories">
+              {fixture.insights.map((ins, idx) => {
+                const meta = getPillarMeta(ins.insight_type);
+                const isActive = activeIndex === idx;
                 return (
                   <button
-                    key={pillar}
+                    key={ins.id || idx}
                     role="tab"
                     aria-selected={isActive}
                     className={`kt-pillar-tab-btn ${isActive ? "active" : ""}`}
-                    onClick={() => {
-                      const idx = fixture.insights.findIndex((i) => i.insight_type === pillar);
-                      if (idx >= 0) onDotClick(idx);
-                    }}
+                    onClick={() => onDotClick(idx)}
                   >
                     <span
                       className="kt-tab-indicator"
@@ -249,4 +241,5 @@ export const SpotlightCard: React.FC<SpotlightCardProps> = React.memo(({
 });
 
 SpotlightCard.displayName = "SpotlightCard";
+
 

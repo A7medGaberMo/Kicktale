@@ -23,7 +23,7 @@ export default function Dashboard({ initialFixtures }: DashboardProps) {
   const {
     fixtures, loading, error, carouselIndices, isAdminOpen,
     isTriggering, triggerLog, prevSlide, nextSlide, setSlideIndex,
-    runPipeline, setIsAdminOpen, fetchFixtures, league, setLeague
+    runPipeline, setIsAdminOpen, fetchFixtures
   } = useFixtures();
 
   const [selectedFixtureId, setSelectedFixtureId] = useState<number | null>(null);
@@ -140,9 +140,8 @@ export default function Dashboard({ initialFixtures }: DashboardProps) {
       <Header
         onOpenAdmin={() => setIsAdminOpen(true)}
         onRefresh={() => fetchFixtures(true)}
-        selectedLeague={league}
-        onSelectLeague={setLeague}
       />
+
 
       {/* Live matches horizontal ticker */}
       {liveFixtures.length > 0 && (

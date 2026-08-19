@@ -6,25 +6,11 @@ import Image from "next/image";
 interface HeaderProps {
   onOpenAdmin: () => void;
   onRefresh: () => void;
-  selectedLeague?: string;
-  onSelectLeague?: (league: string) => void;
 }
-
-const LEAGUE_OPTIONS = [
-  { code: 'ALL', label: 'All Leagues' },
-  { code: 'CL', label: 'Champions League' },
-  { code: 'PL', label: 'Premier League' },
-  { code: 'PD', label: 'La Liga' },
-  { code: 'SA', label: 'Serie A' },
-  { code: 'BL1', label: 'Bundesliga' },
-  { code: 'WC', label: 'World Cup' },
-];
 
 export const Header: React.FC<HeaderProps> = ({
   onOpenAdmin,
   onRefresh,
-  selectedLeague = 'ALL',
-  onSelectLeague,
 }) => {
   const [refreshing, setRefreshing] = useState(false);
 
@@ -47,7 +33,10 @@ export const Header: React.FC<HeaderProps> = ({
             priority
           />
           <div className="kt-nav-text-group">
-            <span className="kt-nav-title">Kicktale</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span className="kt-nav-title">Kicktale</span>
+              <span className="kt-badge-marquee">TOP TIER</span>
+            </div>
             <span className="kt-nav-tagline">AI Match Intelligence &amp; Narratives</span>
           </div>
         </div>
@@ -57,7 +46,7 @@ export const Header: React.FC<HeaderProps> = ({
             className={`kt-icon-btn ${refreshing ? "spin" : ""}`}
             onClick={handleRefresh}
             aria-label="Refresh match data"
-            title="Refresh"
+            title="Refresh feed"
           >
             <svg
               width="15"
@@ -102,23 +91,8 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </div>
       </nav>
-
-      {onSelectLeague && (
-        <div className="kt-league-strip" role="tablist" aria-label="Filter by competition">
-          {LEAGUE_OPTIONS.map((league) => (
-            <button
-              key={league.code}
-              role="tab"
-              aria-selected={selectedLeague === league.code}
-              className={`kt-league-pill ${selectedLeague === league.code ? "active" : ""}`}
-              onClick={() => onSelectLeague(league.code)}
-            >
-              {league.label}
-            </button>
-          ))}
-        </div>
-      )}
     </header>
   );
 };
+
 

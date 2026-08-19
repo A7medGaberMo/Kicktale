@@ -1,7 +1,7 @@
 import { getDB } from '@/lib/db';
 import { isTopLevelCompetition } from '@/lib/competitions';
 import { isPublishableInsight } from '@/lib/contentQuality';
-import { isContentEligibleMatch, isFinishedStatus } from '@/lib/matchFilters';
+import { isContentEligibleMatch, isFinishedStatus, isTopTeamMatch } from '@/lib/matchFilters';
 import AutoInit from './AutoInit';
 import Dashboard from './components/Dashboard';
 
@@ -87,7 +87,7 @@ export default async function Home() {
       const fixtureIds = fixtures.map((f) => f.id);
       const placeholders = fixtureIds.map(() => '?').join(',');
       const insights = await db.query(
-        `SELECT * FROM insights WHERE fixture_id IN (${placeholders}) ORDER BY score DESC`,
+        `SELECT * FROM insights WHERE fixture_id IN (${placeholders}) ORDER BY id ASC`,
         fixtureIds
       ) as InsightRow[];
       const insightsByFixture = new Map<number, {
@@ -106,17 +106,20 @@ export default async function Home() {
         const list = insightsByFixture.get(insight.fixture_id) || [];
         list.push({
           ...insight,
-          score: parseFloat(String(insight.score)),
-          confidence: parseFloat(String(insight.confidence))
+          score: parseFloat(String(insight.score || '90')),
+          confidence: parseFloat(String(insight.confidence || '0.95'))
         });
         insightsByFixture.set(insight.fixture_id, list);
       }
       fixturesWithInsights = fixtures
         .filter((fixture) => isTopLevelCompetition(fixture.competition_code))
+        .filter((fixture) => isTopTeamMatch(fixture))
         .map((fixture) => ({
           ...fixture,
           is_spotlight: Boolean(fixture.is_spotlight),
-          insights: (insightsByFixture.get(fixture.id) || []).filter(isPublishableInsight)
+          insights: (insightsByFixture.get(fixture.id) || [])
+            .filter(isPublishableInsight)
+            .slice(0, 3)
         }))
         .filter((fixture) => {
           if (isFinishedStatus(fixture.status)) return fixture.insights.length > 0;
@@ -136,3 +139,4 @@ export default async function Home() {
 
   return <Dashboard initialFixtures={fixturesWithInsights} />;
 }
+

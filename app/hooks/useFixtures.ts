@@ -3,18 +3,9 @@
 import { useState, useEffect, useCallback } from 'react';
 
 export const PILLARS = [
-  'H2HHistory',
-  'FormMomentum',
-  'TacticalClash',
-  'KeyBattles',
-  'SquadIntel',
-  'StakesContext',
   'RecordWatch',
-  'VenueEdge',
-  'ManagerDuel',
-  'SetPieceAngle',
-  'XFactor',
-  'MatchVerdict',
+  'FormMomentum',
+  'StakesContext',
 ] as const;
 
 export type PillarType = (typeof PILLARS)[number];
@@ -88,14 +79,6 @@ export function groupFixturesByDate(fixtures: Fixture[]): Map<DateGroup, Fixture
   return groups;
 }
 
-export function getPillarCoverage(insights: Insight[]): {
-  pillars: PillarType[];
-  count: number;
-} {
-  const pillars = [...new Set(insights.map(i => i.insight_type as PillarType))];
-  return { pillars, count: pillars.length };
-}
-
 export function useFixtures() {
   const [fixtures, setFixtures] = useState<Fixture[]>([]);
   const [loading, setLoading] = useState(true);
@@ -104,12 +87,11 @@ export function useFixtures() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isTriggering, setIsTriggering] = useState(false);
   const [triggerLog, setTriggerLog] = useState<string | null>(null);
-  const [league, setLeague] = useState('ALL');
 
   const fetchFixtures = useCallback(async (showLoading = false) => {
     try {
       if (showLoading) setLoading(true);
-      const res = await fetch(`/api/fixtures?league=${league}`);
+      const res = await fetch('/api/fixtures');
       const data = await res.json();
       if (data.success) {
         const allFixtures = data.fixtures || [];
@@ -132,7 +114,7 @@ export function useFixtures() {
     } finally {
       setLoading(false);
     }
-  }, [league]);
+  }, []);
 
   useEffect(() => {
     fetchFixtures(true);
@@ -161,18 +143,15 @@ export function useFixtures() {
   const runPipeline = useCallback(async (force = false) => {
     try {
       setIsTriggering(true);
-      setTriggerLog(`Bootstrapping ${league} fixtures and running AI agents...`);
-      const res = await fetch(`/api/cron?league=${league}&force=${force}`, {
+      setTriggerLog('Running AI intelligence pipeline for marquee fixtures...');
+      const res = await fetch(`/api/cron?force=${force}`, {
         headers: { 'x-admin-key': process.env.NEXT_PUBLIC_CRON_SECRET || '' }
       });
       const data = await res.json();
       if (data.success) {
         const totalInsights = data.results?.reduce((acc: number, r: any) => acc + (r.insightsCount || 0), 0) || 0;
-        const skippedFinished = data.skippedFinishedCount || 0;
-        const skippedTbd = data.skippedTbdCount || 0;
         setTriggerLog(
-          `Done! ${data.processedCount || 0} queued fixtures, ${totalInsights} insights generated. ` +
-          `Skipped ${skippedFinished} finished and ${skippedTbd} TBD fixtures to save tokens.`
+          `Pipeline complete! Processed ${data.processedCount || 0} top-tier matches with ${totalInsights} core story stats.`
         );
         fetchFixtures();
       } else {
@@ -183,50 +162,34 @@ export function useFixtures() {
     } finally {
       setIsTriggering(false);
     }
-  }, [fetchFixtures, league]);
+  }, [fetchFixtures]);
 
   return {
     fixtures, loading, error, carouselIndices,
     isAdminOpen, isTriggering, triggerLog,
     prevSlide, nextSlide, setSlideIndex,
     runPipeline, setIsAdminOpen, fetchFixtures,
-    league, setLeague
   } as const;
 }
 
 export type UseFixturesResult = ReturnType<typeof useFixtures>;
 
-export const PILLAR_META: Record<string, { en: string; color: string }> = {
-  // Core narrative pillars
-  TacticalClash:     { en: 'Tactical Clash',        color: '#a78bfa' },
-  TacticalMatchup:   { en: 'Tactical Matchup',      color: '#a78bfa' },
-  FormMomentum:      { en: 'Form & Momentum',       color: '#34d399' },
-  FormGuide:         { en: 'Form Guide',            color: '#34d399' },
-  KeyBattles:        { en: 'Key Battles',           color: '#f87171' },
-  H2HHistory:        { en: 'H2H History',           color: '#818cf8' },
-  SquadIntel:        { en: 'Squad Intel',           color: '#fbbf24' },
-  InjuryImpact:      { en: 'Injury Impact',         color: '#fb923c' },
-  StakesContext:     { en: 'Stakes & Context',      color: '#f97316' },
-  RecordWatch:       { en: 'Record Watch',          color: '#e2c374' },
-  RecordsMilestones: { en: 'Records & Milestones',  color: '#e2c374' },
-  VenueEdge:         { en: 'Venue Edge',            color: '#2dd4bf' },
-  VenueConditions:   { en: 'Venue & Pitch',         color: '#2dd4bf' },
-  RefereeWatch:      { en: 'Referee Watch',         color: '#f472b6' },
-  ManagerDuel:       { en: 'Manager Duel',          color: '#38bdf8' },
-  SetPieceAngle:     { en: 'Set-Piece Angle',       color: '#22d3ee' },
-  XFactor:           { en: 'The X-Factor',          color: '#c084fc' },
-  MatchVerdict:      { en: 'Match Verdict',         color: '#fb7185' },
+export const PILLAR_META: Record<string, { en: string; color: string; short: string }> = {
+  RecordWatch:       { en: 'Record & Milestone', short: 'Record', color: '#D4AF37' },
+  H2HHistory:        { en: 'H2H Supremacy',      short: 'History', color: '#D4AF37' },
+  RecordsMilestones: { en: 'Record Watch',       short: 'Record', color: '#D4AF37' },
+  FormMomentum:      { en: 'Form & Momentum',    short: 'Form',   color: '#38BDF8' },
+  FormGuide:         { en: 'Form Trajectory',    short: 'Form',   color: '#38BDF8' },
+  StakesContext:     { en: 'Match Stakes',       short: 'Stakes', color: '#10B981' },
 };
 
 export function getPillarMeta(type: string) {
   if (PILLAR_META[type]) return PILLAR_META[type];
-  const formatted = type
-    .replace(/([A-Z])/g, ' $1')
-    .trim()
-    .replace(/^./, str => str.toUpperCase());
   return {
-    en: formatted,
-    color: '#94a3b8'
+    en: 'Match Story',
+    short: 'Story',
+    color: '#D4AF37'
   };
 }
+
 

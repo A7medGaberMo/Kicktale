@@ -4,13 +4,19 @@ import fallbackStories from './fallback-stories.json';
 export async function seedFallbackData(): Promise<number> {
   const db = getDB();
   const stories = fallbackStories as Array<{
-    id: number; title: string; insightType: string;
-    desc: string; entityName: string; entityType: string;
+    fixtureId: number;
+    title: string;
+    insightType: string;
+    desc: string;
+    evidence: string;
+    entityName: string;
+    entityType: string;
   }>;
 
   const now = new Date();
   const createdAt = now.toISOString();
-  const kickoff = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  const kickoff999 = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  const kickoff998 = new Date(now.getTime() + 48 * 60 * 60 * 1000);
 
   // Switzerland vs Algeria (Fixture 999)
   await db.execute(
@@ -35,7 +41,7 @@ export async function seedFallbackData(): Promise<number> {
       matchday = excluded.matchday,
       is_spotlight = excluded.is_spotlight,
       created_at = excluded.created_at`,
-    [999, 'WC', 2026, 'SCHEDULED', kickoff.toISOString(), 'GROUP_STAGE', null,
+    [999, 'WC', 2026, 'SCHEDULED', kickoff999.toISOString(), 'GROUP_STAGE', null,
      100, 'Switzerland', '', 101, 'Algeria', '',
      null, 1, 1, createdAt]
   );
@@ -63,29 +69,32 @@ export async function seedFallbackData(): Promise<number> {
       matchday = excluded.matchday,
       is_spotlight = excluded.is_spotlight,
       created_at = excluded.created_at`,
-    [998, 'WC', 2026, 'SCHEDULED', new Date(now.getTime() + 48 * 60 * 60 * 1000).toISOString(), 'GROUP_STAGE', null,
+    [998, 'WC', 2026, 'SCHEDULED', kickoff998.toISOString(), 'GROUP_STAGE', null,
      102, 'Morocco', '', 103, 'Portugal', '',
      null, 1, 0, createdAt]
   );
+
   await db.execute('DELETE FROM insights WHERE fixture_id IN (998, 999)');
 
   for (const story of stories) {
-    const fixtureId = story.id === 1 ? 999 : 998;
     await db.execute(
       `INSERT INTO insights (fixture_id, entity_type, entity_name, insight_type,
         title, content, evidence,
         score, confidence, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        fixtureId, story.entityType || 'Match', story.entityName || story.title,
-        story.insightType || 'MatchVerdict',
+        story.fixtureId,
+        story.entityType || 'Match',
+        story.entityName || story.title,
+        story.insightType || 'RecordWatch',
         story.title,
         story.desc,
-        story.desc,
-        80, 0.9, createdAt
+        story.evidence || story.desc,
+        90, 0.95, createdAt
       ]
     );
   }
 
   return 2;
 }
+

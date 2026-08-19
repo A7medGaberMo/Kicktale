@@ -119,16 +119,16 @@ export const MatchCard: React.FC<MatchCardProps> = React.memo(({
         </div>
       )}
 
-      {/* Footer: Date & Pillar Depth Dots */}
+      {/* Footer: Date & 3 Story Stats Dots */}
       <div className="kt-match-footer">
         <span className="kt-match-date">{displayDate}</span>
         {fixture.insights.length > 0 && (
-          <div className="kt-match-pillars" title={`${fixture.insights.length} perspectives analyzed`}>
-            {fixture.insights.slice(0, 5).map((ins, idx) => {
+          <div className="kt-match-pillars" title={`${fixture.insights.length} story stats`}>
+            {fixture.insights.slice(0, 3).map((ins, idx) => {
               const meta = getPillarMeta(ins.insight_type);
               return (
                 <span
-                  key={idx}
+                  key={ins.id || idx}
                   className="kt-match-pillar-dot"
                   style={{ background: meta.color }}
                   title={meta.en}
@@ -143,4 +143,5 @@ export const MatchCard: React.FC<MatchCardProps> = React.memo(({
 });
 
 MatchCard.displayName = 'MatchCard';
+
 

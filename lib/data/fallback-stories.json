@@ -1,26 +1,57 @@
 [
   {
-    "id": 1,
-    "title": "Switzerland's Unbeaten Run Against Algeria",
+    "fixtureId": 999,
+    "title": "Switzerland's Unbeaten 6-Match Sequence Against Algeria",
     "insightType": "RecordWatch",
-    "desc": "Switzerland are unbeaten in their last 6 meetings with Algeria across all competitions, with 4 wins and 2 draws. The last Algerian victory dates back to 1996, which turns this fixture into a record watch as much as a group-stage opener. Across those 6 matches, Switzerland have scored 14 goals and conceded just 3, but the sharper pattern is timing: they scored first in 5 of the 6 and never dropped points once ahead. Algeria's stake is clear. Break the 28-year sequence and the group changes immediately; concede first, and history says the match starts to tilt hard toward Switzerland's control.",
+    "desc": "Switzerland are unbeaten in their last 6 meetings with Algeria across all competitions, recording 4 wins and 2 draws while conceding just 3 goals in that span. In 5 of those 6 matches, the Swiss opened the scoring inside the first 35 minutes and went on to claim points in every instance.",
+    "evidence": "Unbeaten in 6 meetings with 4 wins, 2 draws, and only 3 goals conceded.",
     "entityName": "Switzerland vs Algeria",
     "entityType": "Rivalry"
   },
   {
-    "id": 2,
-    "title": "Morocco's Golden Generation Meets Its Test",
+    "fixtureId": 999,
+    "title": "Algeria's Attack Averages 2.2 Goals Across Current 7-Match Run",
+    "insightType": "FormMomentum",
+    "desc": "Algeria enter this fixture with formidable offensive momentum, having scored 15 goals in their last 7 international matches (2.14 per game). Their defensive transition has tightened significantly, conceding only once from open play in their last 450 minutes of tournament football.",
+    "evidence": "15 goals scored across their last 7 matches with 4 clean sheets recorded.",
+    "entityName": "Algeria",
+    "entityType": "Team"
+  },
+  {
+    "fixtureId": 999,
+    "title": "Group Advantage Hinges on Securing Maximum Points in Opener",
     "insightType": "StakesContext",
-    "desc": "This Morocco squad carries the weight of a nation's belief after their historic 2022 World Cup semi-final run. But here's the stat that matters: Morocco have won just 2 of their last 9 matches against European opposition, and both wins came against the same team, Belgium. For the first time, they enter a major tournament not as underdogs but as contenders. The question is not talent; it is whether this group can handle the shift from hunter to hunted. Portugal, meanwhile, have everything to lose. A squad this deep, with this much individual quality, reaching the knockout stage is the minimum acceptable result.",
-    "entityName": "Morocco vs Portugal",
+    "desc": "With European and African powerhouses competing in the same group, history confirms that 78% of teams winning their opening match advance to the knockout rounds. A victory for Switzerland solidifies top-two control, while an Algerian upset immediately upends the group qualification math.",
+    "evidence": "78% of opening match winners advance to the tournament knockout phase.",
+    "entityName": "Switzerland vs Algeria",
     "entityType": "Match"
   },
   {
-    "id": 3,
-    "title": "Portugal's Knockout Floor Raises the Stakes",
+    "fixtureId": 998,
+    "title": "Morocco Seek Historic Consecutive Wins Over Portugal",
+    "insightType": "RecordWatch",
+    "desc": "Following their landmark 1-0 World Cup quarter-final triumph in 2022, Morocco have the opportunity to record consecutive competitive victories over Portugal for the first time in their history. Youssef En-Nesyri's header in Qatar remains one of African football's most celebrated milestones.",
+    "evidence": "Won 1-0 in their last competitive meeting at the 2022 World Cup quarter-final.",
+    "entityName": "Morocco vs Portugal",
+    "entityType": "Rivalry"
+  },
+  {
+    "fixtureId": 998,
+    "title": "Portugal's 9-Match Winning Streak Built on 28 Goals Scored",
+    "insightType": "FormMomentum",
+    "desc": "Portugal arrive on an extraordinary run of form, claiming victory in 9 consecutive competitive matches with 28 goals scored and only 3 conceded. Their attacking rotation averages 3.11 goals per game, with chances created across both wings and central overloads.",
+    "evidence": "9 consecutive competitive victories with 28 goals scored and 3 conceded.",
+    "entityName": "Portugal",
+    "entityType": "Team"
+  },
+  {
+    "fixtureId": 998,
+    "title": "High-Stakes Clash Decides Direct Pathway to Knockout Top Seed",
     "insightType": "StakesContext",
-    "desc": "Portugal arrive with a squad built for the late stages, not survival math. Across their last 10 competitive tournament matches, they have reached extra-time or penalties 4 times, a pattern that turns squad depth into a decisive edge. Morocco's route is different: their 2022 semi-final run proved they can defend long phases without losing structure, but Portugal's bench changes the calculation. If this match stays level after 70 minutes, Portugal can add fresh creators without changing the spine of the side. For Morocco, the milestone is larger than one result: another win over European opposition would turn their 2022 run from a historic spike into a repeatable tournament identity.",
+    "desc": "The stakes in this heavyweight encounter extend beyond pride: the winner claims clear pole position for the group's #1 seed, avoiding title favorites in the initial knockout round. For Morocco, proof of consistency at the highest echelon is on the line; for Portugal, it represents vital tournament revenge.",
+    "evidence": "Winner secures #1 seed pathway in the tournament knockout bracket.",
     "entityName": "Morocco vs Portugal",
     "entityType": "Match"
   }
 ]
+

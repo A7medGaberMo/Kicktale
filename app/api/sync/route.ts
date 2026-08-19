@@ -3,6 +3,7 @@ import { getCompetitionMatches, getGeneralMatches } from '@/lib/services/footbal
 import { getDB } from '@/lib/db';
 import { seedFallbackData } from '@/lib/data/seeder';
 import { isTopLevelCompetition, normalizeCompetitionCode } from '@/lib/competitions';
+import { isTopTeamMatch } from '@/lib/matchFilters';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -14,31 +15,35 @@ export async function GET(request: Request) {
   try {
     const db = getDB();
     let matches = [];
+    const now = new Date();
+    const dateFrom = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const dateTo = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
     if (league === 'ALL') {
-      const now = new Date();
-      const dateFrom = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      const dateTo = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      console.log(`[Sync] Fetching all matches from ${dateFrom} to ${dateTo}`);
+      console.log(`[Sync] Fetching top marquee matches from ${dateFrom} to ${dateTo}`);
       matches = await getGeneralMatches(dateFrom, dateTo);
     } else {
-      console.log(`[Sync] Fetching basic fixture data for: ${league}`);
+      console.log(`[Sync] Fetching fixture data for: ${league}`);
       matches = await getCompetitionMatches(league);
     }
 
+    // Filter to top level competitions and top marquee teams
     matches = matches.filter((fixture: any) => {
       const compCode = fixture.competition?.code || league;
-      return league === 'ALL' ? isTopLevelCompetition(compCode) : normalizeCompetitionCode(compCode) === league;
+      const isTopComp = league === 'ALL' ? isTopLevelCompetition(compCode) : normalizeCompetitionCode(compCode) === league;
+      if (!isTopComp) return false;
+      return isTopTeamMatch(fixture);
     });
 
     if (matches.length === 0) {
-      console.log('[Sync] No matches from API. Seeding fallback data fixtures...');
+      console.log('[Sync] No top-tier matches in active window. Seeding fallback marquee stories...');
       await seedFallbackData();
-      return NextResponse.json({ success: true, count: 2, message: 'Seeded fallback fixtures' });
+      return NextResponse.json({ success: true, count: 2, message: 'Seeded top-team marquee stories' });
     }
 
     let saved = 0;
     for (const fixture of matches) {
-      const scoreStr = fixture.score.fullTime.home !== null
+      const scoreStr = fixture.score?.fullTime?.home !== null && fixture.score?.fullTime?.home !== undefined
         ? `${fixture.score.fullTime.home}-${fixture.score.fullTime.away}`
         : null;
 
@@ -76,9 +81,10 @@ export async function GET(request: Request) {
       saved++;
     }
 
-    return NextResponse.json({ success: true, count: saved, message: `Synced ${saved} fixtures` });
+    return NextResponse.json({ success: true, count: saved, message: `Synced ${saved} top-tier fixtures` });
   } catch (err: any) {
     console.error('[Sync] Error:', err);
     return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
   }
 }
+
