@@ -43,8 +43,11 @@ export async function GET(request: Request) {
 
     let saved = 0;
     for (const fixture of matches) {
-      const scoreStr = fixture.score?.fullTime?.home !== null && fixture.score?.fullTime?.home !== undefined
-        ? `${fixture.score.fullTime.home}-${fixture.score.fullTime.away}`
+      const rawScore: any = fixture.score;
+      const scoreHome = rawScore?.fullTime?.home ?? rawScore?.regularTime?.home ?? rawScore?.current?.home ?? rawScore?.halfTime?.home;
+      const scoreAway = rawScore?.fullTime?.away ?? rawScore?.regularTime?.away ?? rawScore?.current?.away ?? rawScore?.halfTime?.away;
+      const scoreStr = (scoreHome !== null && scoreHome !== undefined && scoreAway !== null && scoreAway !== undefined)
+        ? `${scoreHome}-${scoreAway}`
         : null;
 
       const compCode = normalizeCompetitionCode(fixture.competition?.code || league);

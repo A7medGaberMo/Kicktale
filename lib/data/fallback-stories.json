@@ -1,57 +1,56 @@
 [
   {
     "fixtureId": 999,
-    "title": "Switzerland's Unbeaten 6-Match Sequence Against Algeria",
+    "title": "Switzerland Unbeaten in 6 Straight Matches Against Algeria",
     "insightType": "RecordWatch",
-    "desc": "Switzerland are unbeaten in their last 6 meetings with Algeria across all competitions, recording 4 wins and 2 draws while conceding just 3 goals in that span. In 5 of those 6 matches, the Swiss opened the scoring inside the first 35 minutes and went on to claim points in every instance.",
+    "desc": "Switzerland are unbeaten in **6 consecutive meetings** against Algeria, recording 4 wins and 2 draws.\nThe Swiss have conceded just **3 goals** in that span while scoring first in 5 of the 6 clashes.\nA clean sheet tonight would mark their longest defensive streak in head-to-head history.",
     "evidence": "Unbeaten in 6 meetings with 4 wins, 2 draws, and only 3 goals conceded.",
     "entityName": "Switzerland vs Algeria",
     "entityType": "Rivalry"
   },
   {
     "fixtureId": 999,
-    "title": "Algeria's Attack Averages 2.2 Goals Across Current 7-Match Run",
+    "title": "Algeria Attack Averages 2.14 Goals Over 7-Game Surge",
     "insightType": "FormMomentum",
-    "desc": "Algeria enter this fixture with formidable offensive momentum, having scored 15 goals in their last 7 international matches (2.14 per game). Their defensive transition has tightened significantly, conceding only once from open play in their last 450 minutes of tournament football.",
+    "desc": "Algeria have scored **15 goals in their last 7 matches**, averaging 2.14 goals per match.\nTheir backline has conceded only **1 goal from open play** over the last 450 tournament minutes.\nThey enter this clash with 4 clean sheets in their last 5 outings.",
     "evidence": "15 goals scored across their last 7 matches with 4 clean sheets recorded.",
     "entityName": "Algeria",
     "entityType": "Team"
   },
   {
     "fixtureId": 999,
-    "title": "Group Advantage Hinges on Securing Maximum Points in Opener",
+    "title": "Opening Match Winner Holds 78% Knockout Advance Rate",
     "insightType": "StakesContext",
-    "desc": "With European and African powerhouses competing in the same group, history confirms that 78% of teams winning their opening match advance to the knockout rounds. A victory for Switzerland solidifies top-two control, while an Algerian upset immediately upends the group qualification math.",
+    "desc": "Historically, **78% of teams** winning their opening tournament match advance directly to the knockouts.\nA victory for Switzerland solidifies pole position for top-two qualification.\nAn Algerian upset blows the group wide open for the remaining two matchdays.",
     "evidence": "78% of opening match winners advance to the tournament knockout phase.",
     "entityName": "Switzerland vs Algeria",
     "entityType": "Match"
   },
   {
     "fixtureId": 998,
-    "title": "Morocco Seek Historic Consecutive Wins Over Portugal",
+    "title": "Morocco Target Consecutive Historic Victories Over Portugal",
     "insightType": "RecordWatch",
-    "desc": "Following their landmark 1-0 World Cup quarter-final triumph in 2022, Morocco have the opportunity to record consecutive competitive victories over Portugal for the first time in their history. Youssef En-Nesyri's header in Qatar remains one of African football's most celebrated milestones.",
+    "desc": "Morocco can claim **consecutive competitive wins** over Portugal for the first time in their history.\nTheir iconic **1-0 quarter-final triumph** in Qatar remains their benchmark performance.\nPortugal have failed to score against Morocco in their last 180 tournament minutes.",
     "evidence": "Won 1-0 in their last competitive meeting at the 2022 World Cup quarter-final.",
     "entityName": "Morocco vs Portugal",
     "entityType": "Rivalry"
   },
   {
     "fixtureId": 998,
-    "title": "Portugal's 9-Match Winning Streak Built on 28 Goals Scored",
+    "title": "Portugal On 9-Match Winning Run With 28 Goals Scored",
     "insightType": "FormMomentum",
-    "desc": "Portugal arrive on an extraordinary run of form, claiming victory in 9 consecutive competitive matches with 28 goals scored and only 3 conceded. Their attacking rotation averages 3.11 goals per game, with chances created across both wings and central overloads.",
+    "desc": "Portugal arrive with **9 consecutive competitive victories**, scoring 28 goals and conceding just 3.\nTheir attack averages **3.11 goals per match**, creating over 4.2 big chances per 90.\nThey have kept 6 clean sheets during this 9-match dominant streak.",
     "evidence": "9 consecutive competitive victories with 28 goals scored and 3 conceded.",
     "entityName": "Portugal",
     "entityType": "Team"
   },
   {
     "fixtureId": 998,
-    "title": "High-Stakes Clash Decides Direct Pathway to Knockout Top Seed",
+    "title": "Winner Claims #1 Seed Bracket Pathway in Group Stage",
     "insightType": "StakesContext",
-    "desc": "The stakes in this heavyweight encounter extend beyond pride: the winner claims clear pole position for the group's #1 seed, avoiding title favorites in the initial knockout round. For Morocco, proof of consistency at the highest echelon is on the line; for Portugal, it represents vital tournament revenge.",
+    "desc": "The winner of this clash takes **pole position for the #1 seed**, avoiding title contenders early.\nA defeat forces the loser into a high-pressure survival scenario on Matchday 2.\nMaximum 3 points tonight virtually guarantees knockout stage progression.",
     "evidence": "Winner secures #1 seed pathway in the tournament knockout bracket.",
     "entityName": "Morocco vs Portugal",
     "entityType": "Match"
   }
 ]
-

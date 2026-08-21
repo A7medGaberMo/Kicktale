@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import type { Fixture } from "@/app/hooks/useFixtures";
-import { getPillarMeta } from "@/app/hooks/useFixtures";
+import { getPillarMeta, isLiveStatus, isFinishedStatus } from "@/app/hooks/useFixtures";
 import ReactMarkdown from "react-markdown";
 import { CopyBlock } from "./SocialShare";
 
@@ -52,8 +52,8 @@ export const SpotlightCard: React.FC<SpotlightCardProps> = React.memo(({
   formatDate,
 }) => {
   const activeInsight = fixture.insights[activeIndex] || fixture.insights[0];
-  const isLive = fixture.status === "LIVE" || fixture.status === "IN_PLAY" || fixture.status === "PAUSED";
-  const isFinished = fixture.status === "FINISHED" || fixture.status === "FT" || fixture.status === "COMPLETED" || fixture.status === "AWARDED";
+  const isLive = isLiveStatus(fixture.status);
+  const isFinished = isFinishedStatus(fixture.status);
   const [imageErrorHome, setImageErrorHome] = useState(false);
   const [imageErrorAway, setImageErrorAway] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);

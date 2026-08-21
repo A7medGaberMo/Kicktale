@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import type { Fixture } from '@/app/hooks/useFixtures';
-import { getPillarMeta } from '@/app/hooks/useFixtures';
+import { getPillarMeta, isLiveStatus, isFinishedStatus } from '@/app/hooks/useFixtures';
 
 function sanitizeTitle(raw: string): string {
   if (!raw) return '';
@@ -27,8 +27,8 @@ export const MatchCard: React.FC<MatchCardProps> = React.memo(({
   formatDate,
 }) => {
   const topInsight = fixture.insights[0];
-  const isLive = fixture.status === 'LIVE' || fixture.status === 'IN_PLAY' || fixture.status === 'PAUSED';
-  const isFinished = fixture.status === 'FINISHED' || fixture.status === 'FT' || fixture.status === 'COMPLETED' || fixture.status === 'AWARDED';
+  const isLive = isLiveStatus(fixture.status);
+  const isFinished = isFinishedStatus(fixture.status);
   const [imageErrorHome, setImageErrorHome] = useState(false);
   const [imageErrorAway, setImageErrorAway] = useState(false);
 

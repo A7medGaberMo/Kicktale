@@ -11,6 +11,7 @@ import AmbientGlow from './AmbientGlow';
 import {
   Fixture, useFixtures, groupFixturesByDate,
   getDateGroup, getDateGroupLabel, DateGroup,
+  isLiveStatus, isFinishedStatus
 } from '../hooks/useFixtures';
 
 interface DashboardProps {
@@ -22,8 +23,8 @@ const DATE_GROUP_ORDER: DateGroup[] = ['today', 'tomorrow', 'this_week', 'upcomi
 export default function Dashboard({ initialFixtures }: DashboardProps) {
   const {
     fixtures, loading, error, carouselIndices, isAdminOpen,
-    isTriggering, triggerLog, prevSlide, nextSlide, setSlideIndex,
-    runPipeline, setIsAdminOpen, fetchFixtures
+    isTriggering, isClearing, triggerLog, prevSlide, nextSlide, setSlideIndex,
+    runPipeline, clearDatabase, setIsAdminOpen, fetchFixtures
   } = useFixtures();
 
   const [selectedFixtureId, setSelectedFixtureId] = useState<number | null>(null);
@@ -32,8 +33,7 @@ export default function Dashboard({ initialFixtures }: DashboardProps) {
   const allFixtures = useMemo(() => {
     const raw = fixtures.length > 0 ? fixtures : (initialFixtures || []);
     return raw.map((f: Fixture) => {
-      const s = (f.status || '').toUpperCase();
-      const isFinished = s === 'FINISHED' || s === 'FT' || s === 'COMPLETED' || s === 'AWARDED';
+      const isFinished = isFinishedStatus(f.status);
       if (isFinished) {
         return {
           ...f,
@@ -51,23 +51,19 @@ export default function Dashboard({ initialFixtures }: DashboardProps) {
       const exists = allFixtures.some(f => f.id === selectedFixtureId);
       if (exists) return selectedFixtureId;
     }
-    // Prefer upcoming matches with insights for spotlight
-    const upcomingWithInsights = allFixtures.find(f => {
-      const s = (f.status || '').toUpperCase();
-      const isFinished = s === 'FINISHED' || s === 'FT' || s === 'COMPLETED' || s === 'AWARDED';
-      return !isFinished && f.insights.length > 0 && f.is_spotlight;
-    });
-    if (upcomingWithInsights) return upcomingWithInsights.id;
+    // 1. Highest priority: Live match with insights
+    const liveWithInsights = allFixtures.find(f => isLiveStatus(f.status) && f.insights.length > 0);
+    if (liveWithInsights) return liveWithInsights.id;
 
-    // Fallback: any upcoming with insights
-    const anyUpcoming = allFixtures.find(f => {
-      const s = (f.status || '').toUpperCase();
-      const isFinished = s === 'FINISHED' || s === 'FT' || s === 'COMPLETED' || s === 'AWARDED';
-      return !isFinished && f.insights.length > 0;
-    });
+    // 2. Upcoming matches with insights and spotlight flag
+    const upcomingSpotlight = allFixtures.find(f => !isFinishedStatus(f.status) && f.insights.length > 0 && f.is_spotlight);
+    if (upcomingSpotlight) return upcomingSpotlight.id;
+
+    // 3. Any upcoming match with insights
+    const anyUpcoming = allFixtures.find(f => !isFinishedStatus(f.status) && f.insights.length > 0);
     if (anyUpcoming) return anyUpcoming.id;
 
-    // Last resort: any spotlight or first fixture
+    // 4. Last resort: any spotlight or first fixture
     return allFixtures.find(f => f.is_spotlight)?.id ?? allFixtures[0]?.id ?? null;
   }, [selectedFixtureId, allFixtures]);
 
@@ -75,24 +71,15 @@ export default function Dashboard({ initialFixtures }: DashboardProps) {
   const groupedFixtures = useMemo(() => groupFixturesByDate(allFixtures), [allFixtures]);
 
   const liveFixtures = useMemo(() => {
-    return allFixtures.filter((f: Fixture) => {
-      const status = (f.status || '').toUpperCase();
-      return status === 'LIVE' || status === 'IN_PLAY' || status === 'PAUSED';
-    });
+    return allFixtures.filter((f: Fixture) => isLiveStatus(f.status));
   }, [allFixtures]);
 
   const upcomingCount = useMemo(() => {
-    return allFixtures.filter((f: Fixture) => {
-      const status = (f.status || '').toUpperCase();
-      return status !== 'FINISHED' && status !== 'FT' && status !== 'COMPLETED' && status !== 'AWARDED';
-    }).length;
+    return allFixtures.filter((f: Fixture) => !isFinishedStatus(f.status)).length;
   }, [allFixtures]);
 
   const resultsFixtures = useMemo(() => {
-    return allFixtures.filter((f: Fixture) => {
-      const s = (f.status || '').toUpperCase();
-      return s === 'FINISHED' || s === 'FT' || s === 'COMPLETED' || s === 'AWARDED';
-    });
+    return allFixtures.filter((f: Fixture) => isFinishedStatus(f.status));
   }, [allFixtures]);
 
   const resultsCount = resultsFixtures.length;
@@ -288,8 +275,10 @@ export default function Dashboard({ initialFixtures }: DashboardProps) {
         isOpen={isAdminOpen}
         onClose={() => setIsAdminOpen(false)}
         isTriggering={isTriggering}
+        isClearing={isClearing}
         triggerLog={triggerLog}
         onTrigger={runPipeline}
+        onClear={clearDatabase}
       />
 
       {/* Floating Scroll to Top button */}

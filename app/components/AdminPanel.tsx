@@ -6,16 +6,20 @@ interface AdminPanelProps {
   isOpen: boolean;
   onClose: () => void;
   isTriggering: boolean;
+  isClearing?: boolean;
   triggerLog: string | null;
   onTrigger: (force: boolean) => Promise<void>;
+  onClear?: () => Promise<void>;
 }
 
 export const AdminPanel: React.FC<AdminPanelProps> = ({
   isOpen,
   onClose,
   isTriggering,
+  isClearing = false,
   triggerLog,
   onTrigger,
+  onClear,
 }) => {
   if (!isOpen) return null;
 
@@ -34,7 +38,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth="2.2"
             strokeLinecap="round"
             strokeLinejoin="round"
           >
@@ -43,29 +47,42 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           </svg>
         </button>
 
-        <h3 style={{ margin: 0, fontSize: "1.1rem" }}>
-          Pipeline Controls
-        </h3>
+        <div className="kt-admin-header-group">
+          <h3 className="kt-admin-title">
+            Kicktale Controls
+          </h3>
+          <p className="kt-admin-desc">
+            Direct Football Intelligence Engine. Run the single-pass pipeline for 2-3 line match insights or clear the cache.
+          </p>
+        </div>
 
-        <p style={{ fontSize: "0.78rem", color: "var(--text-3)", margin: 0, lineHeight: 1.5 }}>
-          Run the multi-agent intelligence pipeline to discover narratives, analyze tactical form, and evaluate match insights.
-        </p>
+        <div className="kt-admin-action-group">
+          <button
+            className="kt-btn kt-btn-primary"
+            disabled={isTriggering || isClearing}
+            onClick={() => onTrigger(false)}
+          >
+            {isTriggering ? "Running Pipeline..." : "Run AI Pipeline"}
+          </button>
 
-        <button
-          className="kt-btn"
-          disabled={isTriggering}
-          onClick={() => onTrigger(false)}
-        >
-          {isTriggering ? "Running Pipeline..." : "Run Pipeline"}
-        </button>
+          <button
+            className="kt-btn kt-btn-secondary"
+            disabled={isTriggering || isClearing}
+            onClick={() => onTrigger(true)}
+          >
+            {isTriggering ? "Regenerating..." : "Force Regenerate (Bypass Cache)"}
+          </button>
 
-        <button
-          className="kt-btn kt-btn-secondary"
-          disabled={isTriggering}
-          onClick={() => onTrigger(true)}
-        >
-          {isTriggering ? "Regenerating..." : "Force Regenerate"}
-        </button>
+          {onClear && (
+            <button
+              className="kt-btn kt-btn-danger"
+              disabled={isTriggering || isClearing}
+              onClick={onClear}
+            >
+              {isClearing ? "Clearing Database..." : "Clear Database & Cache"}
+            </button>
+          )}
+        </div>
 
         {triggerLog && (
           <div className="kt-admin-log" role="status">
@@ -74,11 +91,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
         )}
 
         <button
-          className="kt-btn kt-btn-secondary"
+          className="kt-btn kt-btn-ghost"
           onClick={onClose}
           style={{ marginTop: "auto" }}
         >
-          Close
+          Done
         </button>
       </div>
     </>

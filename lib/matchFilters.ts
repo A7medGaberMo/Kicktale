@@ -1,12 +1,34 @@
-export const FINISHED_STATUSES = new Set(['FINISHED', 'FT', 'COMPLETED', 'AWARDED']);
-export const LIVE_STATUSES = new Set(['LIVE', 'IN_PLAY', 'PAUSED']);
+export const FINISHED_STATUSES = new Set([
+  'FINISHED',
+  'FT',
+  'COMPLETED',
+  'AWARDED',
+  'AET',
+  'AP'
+]);
+
+export const LIVE_STATUSES = new Set([
+  'LIVE',
+  'IN_PLAY',
+  'PAUSED',
+  'EXTRA_TIME',
+  'PENALTY_SHOOTOUT',
+  'HT',
+  '1H',
+  '2H',
+  'ET',
+  'P',
+  'HALFTIME',
+  'IN-PLAY',
+  'LIVE_NOW'
+]);
 
 export function isFinishedStatus(status?: string | null): boolean {
-  return FINISHED_STATUSES.has((status || '').toUpperCase());
+  return FINISHED_STATUSES.has((status || '').toUpperCase().trim());
 }
 
 export function isLiveStatus(status?: string | null): boolean {
-  return LIVE_STATUSES.has((status || '').toUpperCase());
+  return LIVE_STATUSES.has((status || '').toUpperCase().trim());
 }
 
 export function hasPlayableTeams(match: any): boolean {

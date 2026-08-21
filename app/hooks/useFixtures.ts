@@ -41,14 +41,51 @@ export interface Fixture {
   insights: Insight[];
 }
 
+export const LIVE_STATUSES = new Set([
+  'LIVE',
+  'IN_PLAY',
+  'PAUSED',
+  'EXTRA_TIME',
+  'PENALTY_SHOOTOUT',
+  'HT',
+  '1H',
+  '2H',
+  'ET',
+  'P',
+  'HALFTIME',
+  'IN-PLAY',
+  'LIVE_NOW'
+]);
+
+export const FINISHED_STATUSES = new Set([
+  'FINISHED',
+  'FT',
+  'COMPLETED',
+  'AWARDED',
+  'AET',
+  'AP'
+]);
+
+export function isLiveStatus(status?: string | null): boolean {
+  return LIVE_STATUSES.has((status || '').toUpperCase().trim());
+}
+
+export function isFinishedStatus(status?: string | null): boolean {
+  return FINISHED_STATUSES.has((status || '').toUpperCase().trim());
+}
+
 export type DateGroup = 'results' | 'today' | 'tomorrow' | 'this_week' | 'upcoming';
 
-export function getDateGroup(utcDate: string): DateGroup {
+export function getDateGroup(utcDate: string, status?: string): DateGroup {
+  if (isLiveStatus(status)) return 'today';
+  if (isFinishedStatus(status)) return 'results';
+
   const now = new Date();
   const d = new Date(utcDate);
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
   const in7Days = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+
   if (d < today) return 'results';
   if (d >= today && d < tomorrow) return 'today';
   if (d >= tomorrow && d < new Date(tomorrow.getTime() + 24 * 60 * 60 * 1000)) return 'tomorrow';
@@ -73,7 +110,7 @@ export function groupFixturesByDate(fixtures: Fixture[]): Map<DateGroup, Fixture
     groups.set(group, []);
   }
   for (const f of fixtures) {
-    const group = getDateGroup(f.utc_date);
+    const group = getDateGroup(f.utc_date, f.status);
     groups.get(group)?.push(f);
   }
   return groups;
@@ -86,6 +123,7 @@ export function useFixtures() {
   const [carouselIndices, setCarouselIndices] = useState<Record<number, number>>({});
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isTriggering, setIsTriggering] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
   const [triggerLog, setTriggerLog] = useState<string | null>(null);
 
   const fetchFixtures = useCallback(async (showLoading = false) => {
@@ -143,7 +181,7 @@ export function useFixtures() {
   const runPipeline = useCallback(async (force = false) => {
     try {
       setIsTriggering(true);
-      setTriggerLog('Running AI intelligence pipeline for marquee fixtures...');
+      setTriggerLog('Running Kicktale AI Direct Intelligence pipeline for marquee fixtures...');
       const res = await fetch(`/api/cron?force=${force}`, {
         headers: { 'x-admin-key': process.env.NEXT_PUBLIC_CRON_SECRET || '' }
       });
@@ -151,7 +189,7 @@ export function useFixtures() {
       if (data.success) {
         const totalInsights = data.results?.reduce((acc: number, r: any) => acc + (r.insightsCount || 0), 0) || 0;
         setTriggerLog(
-          `Pipeline complete! Processed ${data.processedCount || 0} top-tier matches with ${totalInsights} core story stats.`
+          `Pipeline complete! Processed ${data.processedCount || 0} matches with ${totalInsights} direct 2-3 line insights.`
         );
         fetchFixtures();
       } else {
@@ -164,23 +202,43 @@ export function useFixtures() {
     }
   }, [fetchFixtures]);
 
+  const clearDatabase = useCallback(async () => {
+    try {
+      setIsClearing(true);
+      setTriggerLog('Clearing database & match cache...');
+      const res = await fetch('/api/clear', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        setFixtures([]);
+        setTriggerLog('Database cleared successfully! All cached matches and insights removed.');
+        await fetchFixtures(true);
+      } else {
+        setTriggerLog(`Failed to clear database: ${data.error}`);
+      }
+    } catch (err: any) {
+      setTriggerLog(`Clear Error: ${err.message}`);
+    } finally {
+      setIsClearing(false);
+    }
+  }, [fetchFixtures]);
+
   return {
     fixtures, loading, error, carouselIndices,
-    isAdminOpen, isTriggering, triggerLog,
+    isAdminOpen, isTriggering, isClearing, triggerLog,
     prevSlide, nextSlide, setSlideIndex,
-    runPipeline, setIsAdminOpen, fetchFixtures,
+    runPipeline, clearDatabase, setIsAdminOpen, fetchFixtures,
   } as const;
 }
 
 export type UseFixturesResult = ReturnType<typeof useFixtures>;
 
 export const PILLAR_META: Record<string, { en: string; color: string; short: string }> = {
-  RecordWatch:       { en: 'Record & Milestone', short: 'Record', color: '#D4AF37' },
-  H2HHistory:        { en: 'H2H Supremacy',      short: 'History', color: '#D4AF37' },
-  RecordsMilestones: { en: 'Record Watch',       short: 'Record', color: '#D4AF37' },
-  FormMomentum:      { en: 'Form & Momentum',    short: 'Form',   color: '#38BDF8' },
-  FormGuide:         { en: 'Form Trajectory',    short: 'Form',   color: '#38BDF8' },
-  StakesContext:     { en: 'Match Stakes',       short: 'Stakes', color: '#10B981' },
+  RecordWatch:       { en: 'Record & Milestone', short: 'Record', color: '#FFD60A' },
+  H2HHistory:        { en: 'H2H Supremacy',      short: 'History', color: '#FFD60A' },
+  RecordsMilestones: { en: 'Record Watch',       short: 'Record', color: '#FFD60A' },
+  FormMomentum:      { en: 'Form & Momentum',    short: 'Form',   color: '#0A84FF' },
+  FormGuide:         { en: 'Form Trajectory',    short: 'Form',   color: '#0A84FF' },
+  StakesContext:     { en: 'Match Stakes',       short: 'Stakes', color: '#30D158' },
 };
 
 export function getPillarMeta(type: string) {
@@ -188,7 +246,7 @@ export function getPillarMeta(type: string) {
   return {
     en: 'Match Story',
     short: 'Story',
-    color: '#D4AF37'
+    color: '#FFD60A'
   };
 }
 

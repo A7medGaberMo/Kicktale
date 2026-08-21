@@ -1,70 +1,79 @@
 /* ==========================================================================
-   KICKTALE DESIGN SYSTEM — EDITORIAL FOOTBALL INTELLIGENCE
-   Crafted with senior-grade frontend design tokens, zero-sparkle minimalism,
-   fluid typography, and pixel-perfect small-screen responsiveness.
+   KICKTALE DESIGN SYSTEM — APPLE HUMAN INTERFACE DESIGN (iOS 18 / visionOS)
+   Pixel-perfect Apple typography, frosted vibrancy, squircle radii, 
+   SF Pro optical tracking, Dynamic Island live indicators, and Apple dark materials.
    ========================================================================== */
 
 :root {
-  /* Surface Palette */
-  --bg-canvas: #080a0f;
-  --bg-surface-1: #0f131c;
-  --bg-surface-2: #141924;
-  --bg-surface-3: #1a2130;
-  --bg-surface-hover: #1e2637;
-  --bg-elevated: #161c28;
+  /* Apple Surface Materials (Dark Mode) */
+  --bg-canvas: #000000;
+  --bg-surface-glass: rgba(28, 28, 30, 0.70);
+  --bg-surface-glass-subtle: rgba(255, 255, 255, 0.04);
+  --bg-surface-1: #0c0c0e;
+  --bg-surface-2: #141417;
+  --bg-surface-3: #1c1c1f;
+  --bg-surface-hover: rgba(255, 255, 255, 0.07);
+  --bg-elevated: #18181b;
 
-  /* Borders */
-  --border-hairline: rgba(255, 255, 255, 0.05);
-  --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-default: rgba(255, 255, 255, 0.12);
-  --border-highlight: rgba(255, 255, 255, 0.20);
-  --border-accent: rgba(212, 175, 55, 0.30);
+  /* Apple Hairline Micro-Borders */
+  --border-hairline: rgba(255, 255, 255, 0.06);
+  --border-subtle: rgba(255, 255, 255, 0.10);
+  --border-default: rgba(255, 255, 255, 0.15);
+  --border-highlight: rgba(255, 255, 255, 0.28);
+  --border-accent: rgba(255, 214, 10, 0.35);
 
-  /* Typography */
-  --font-sans: var(--font-inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
-  --font-display: var(--font-display, var(--font-inter, sans-serif));
+  /* Apple System Typography Scale */
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "SF Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "SF Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "SF Pro Rounded", Menlo, Monaco, Consolas, monospace;
 
-  --text-1: #f8fafc;        /* High-contrast titles & headers */
-  --text-2: #cbd5e1;        /* Body & readable story copy */
-  --text-3: #94a3b8;        /* Secondary metadata & labels */
-  --text-4: #64748b;        /* Muted elements & subtle counters */
+  /* Apple Vibrancy Text Hierarchy */
+  --text-1: #ffffff;                       /* Primary Label (100%) */
+  --text-2: rgba(235, 235, 245, 0.82);     /* Secondary Label (82%) */
+  --text-3: rgba(235, 235, 245, 0.58);     /* Tertiary Label (58%) */
+  --text-4: rgba(235, 235, 245, 0.36);     /* Quaternary Label (36%) */
 
-  /* Brand Accents */
-  --gold-primary: #d4af37;
-  --gold-light: #e6c66e;
-  --gold-dark: #b38f22;
-  --gold-subtle: rgba(212, 175, 55, 0.08);
-  --gold-subtle-hover: rgba(212, 175, 55, 0.15);
+  /* Apple System Accent Colors (HIG Dark Palette) */
+  --gold-primary: #ffd60a;                 /* System Yellow/Gold */
+  --gold-light: #ffe047;
+  --gold-dark: #d4af37;
+  --gold-subtle: rgba(255, 214, 10, 0.10);
+  --gold-subtle-hover: rgba(255, 214, 10, 0.18);
+  --gold-border: rgba(255, 214, 10, 0.28);
 
   /* Status Colors */
-  --status-live: #f43f5e;
-  --status-live-bg: rgba(244, 63, 94, 0.10);
-  --status-live-border: rgba(244, 63, 94, 0.25);
-  --status-ft: #10b981;
-  --status-ft-bg: rgba(16, 185, 129, 0.10);
-  --status-ft-border: rgba(16, 185, 129, 0.25);
-  --status-blue: #38bdf8;
-  --status-blue-bg: rgba(56, 189, 248, 0.10);
+  --status-live: #ff453a;                  /* System Red */
+  --status-live-bg: rgba(255, 69, 58, 0.12);
+  --status-live-border: rgba(255, 69, 58, 0.32);
+  --status-ft: #30d158;                    /* System Green */
+  --status-ft-bg: rgba(48, 209, 88, 0.12);
+  --status-ft-border: rgba(48, 209, 88, 0.28);
+  --status-blue: #0a84ff;                  /* System Blue */
+  --status-blue-bg: rgba(10, 132, 255, 0.12);
+  --status-blue-border: rgba(10, 132, 255, 0.30);
 
-  /* Radius Tokens */
-  --radius-xs: 4px;
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
-  --radius-xl: 20px;
+  /* Apple Squircle Radius Scale */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 22px;
+  --radius-2xl: 28px;
   --radius-full: 9999px;
 
-  /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.45);
-  --shadow-elevated: 0 12px 36px -4px rgba(0, 0, 0, 0.6);
-  --shadow-inset: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  /* Apple Shadows & Inset Highlights */
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  --shadow-elevated: 0 16px 40px -4px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+  --shadow-inset: inset 0 1px 0 0 rgba(255, 255, 255, 0.10);
 
-  /* Transitions */
+  /* Apple Motion & Springs */
+  --ease-apple: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
-  --trans-fast: 0.15s ease;
-  --trans-base: 0.25s var(--ease-spring);
-  --trans-slow: 0.4s var(--ease-spring);
+  --trans-fast: 0.16s var(--ease-apple);
+  --trans-base: 0.26s var(--ease-apple);
+  --trans-spring: 0.45s var(--ease-spring);
 }
 
 /* ==================== GLOBAL RESETS ==================== */
@@ -78,6 +87,7 @@ html {
   color-scheme: dark;
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
@@ -85,18 +95,24 @@ body {
   color: var(--text-2);
   font-family: var(--font-sans);
   font-size: 15px;
-  line-height: 1.6;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   overflow-x: hidden;
   min-height: 100vh;
   position: relative;
+  letter-spacing: -0.011em;
 }
 
-/* Tabular figures for all numbers/metrics */
+/* Apple Tabular Figures for Numbers / Times / Scores */
 .tabular, .kt-match-time, .kt-match-score, .kt-spotlight-score-big,
-.kt-live-score, .kt-spotlight-counter, .kt-date-count, .kt-column-badge {
+.kt-live-score, .kt-spotlight-counter, .kt-date-count, .kt-column-badge,
+.kt-meta-chip {
+  font-family: var(--font-sans);
   font-variant-numeric: tabular-nums lining-nums;
+  -webkit-font-feature-settings: "tnum" 1, "lnum" 1;
+  font-feature-settings: "tnum" 1, "lnum" 1;
 }
 
 h1, h2, h3, h4, h5, h6,
@@ -105,7 +121,7 @@ h1, h2, h3, h4, h5, h6,
   font-family: var(--font-display);
   color: var(--text-1);
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.024em;
 }
 
 a {
@@ -119,6 +135,9 @@ button {
   background: none;
   cursor: pointer;
   color: inherit;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
 }
 
 button:focus-visible, a:focus-visible {
@@ -126,65 +145,65 @@ button:focus-visible, a:focus-visible {
   outline-offset: 2px;
 }
 
-/* Scrollbar refinement */
+/* Apple Refined Minimal Scrollbar */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.16);
   border-radius: var(--radius-full);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.28);
 }
 
 ::selection {
-  background: rgba(212, 175, 55, 0.25);
+  background: rgba(255, 214, 10, 0.30);
   color: #ffffff;
 }
 
-/* ==================== AMBIENT MESH (0 SPARKLES) ==================== */
+/* ==================== AMBIENT GLOW ==================== */
 .kt-ambient-canvas {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 0;
   overflow: hidden;
-  opacity: 0.6;
+  opacity: 0.75;
 }
 
 .kt-ambient-blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(90px);
+  filter: blur(120px);
   will-change: transform;
 }
 
 .kt-ambient-blob-1 {
-  top: -120px;
-  right: -80px;
-  width: 480px;
-  height: 480px;
-  background: radial-gradient(circle, rgba(212, 175, 55, 0.04) 0%, rgba(212, 175, 55, 0.01) 50%, transparent 70%);
+  top: -140px;
+  right: -60px;
+  width: 520px;
+  height: 520px;
+  background: radial-gradient(circle, rgba(255, 214, 10, 0.05) 0%, rgba(255, 214, 10, 0.01) 55%, transparent 75%);
 }
 
 .kt-ambient-blob-2 {
-  top: 40%;
-  left: -150px;
-  width: 550px;
-  height: 550px;
-  background: radial-gradient(circle, rgba(56, 189, 248, 0.025) 0%, transparent 70%);
+  top: 45%;
+  left: -180px;
+  width: 580px;
+  height: 580px;
+  background: radial-gradient(circle, rgba(10, 132, 255, 0.04) 0%, transparent 75%);
 }
 
 /* ==================== LAYOUT CONTAINER ==================== */
 .kt-container {
-  max-width: 1280px;
+  max-width: 1240px;
   margin: 0 auto;
-  padding: 0 12px 40px;
+  padding: 0 14px 44px;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -194,76 +213,120 @@ button:focus-visible, a:focus-visible {
 
 @media (min-width: 640px) {
   .kt-container {
-    padding: 0 20px 48px;
+    padding: 0 24px 52px;
     gap: 24px;
   }
 }
 
 @media (min-width: 1024px) {
   .kt-container {
-    padding: 0 28px 56px;
+    padding: 0 32px 64px;
     gap: 28px;
   }
 }
 
 /* ==================== ANIMATIONS ==================== */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes appleFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
-@keyframes pulseDot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.85); }
+@keyframes pulseLive {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(255, 69, 58, 0.7);
+  }
+  70% {
+    transform: scale(1.08);
+    box-shadow: 0 0 0 6px rgba(255, 69, 58, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(255, 69, 58, 0);
+  }
 }
 
-@keyframes spinSync {
+@keyframes spinApple {
   to { transform: rotate(360deg); }
 }
 
-@keyframes shimmerCard {
+@keyframes shimmerApple {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
 
 .anim-fade-up {
-  animation: fadeIn 0.4s var(--ease-spring) backwards;
+  animation: appleFadeIn 0.38s var(--ease-spring) backwards;
 }
 .anim-stagger-1 { animation-delay: 0.04s; }
 .anim-stagger-2 { animation-delay: 0.08s; }
 .anim-stagger-3 { animation-delay: 0.12s; }
 .anim-stagger-4 { animation-delay: 0.16s; }
 
-/* ==================== NAVBAR ==================== */
+/* ==================== NAVBAR (APPLE FROSTED HEADER) ==================== */
+.kt-app-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  background: rgba(0, 0, 0, 0.65);
+  border-bottom: 1px solid var(--border-hairline);
+  margin: 0 -14px 4px;
+  padding: 0 14px;
+}
+
+@media (min-width: 640px) {
+  .kt-app-header {
+    margin: 0 -24px 6px;
+    padding: 0 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .kt-app-header {
+    margin: 0 -32px 8px;
+    padding: 0 32px;
+  }
+}
+
 .kt-nav {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--border-subtle);
+  padding: 12px 0;
   gap: 12px;
+  max-width: 1240px;
+  margin: 0 auto;
 }
 
 .kt-nav-brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
 }
 
 .kt-nav-logo {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: var(--radius-sm);
   object-fit: contain;
   flex-shrink: 0;
   border: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.03);
 }
 
 @media (min-width: 640px) {
   .kt-nav-logo {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
   }
 }
 
@@ -275,34 +338,33 @@ button:focus-visible, a:focus-visible {
 
 .kt-nav-title {
   font-size: 1.15rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: -0.024em;
   color: var(--text-1);
-  line-height: 1.1;
+  line-height: 1.15;
 }
 
 .kt-badge-marquee {
   display: inline-flex;
   align-items: center;
-  font-size: 0.6rem;
+  font-size: 0.62rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--gold-primary);
+  color: var(--gold-light);
   background: var(--gold-subtle);
   border: 1px solid var(--gold-border);
-  padding: 1px 6px;
+  padding: 1px 7px;
   border-radius: var(--radius-full);
   line-height: 1.4;
 }
-
 
 .kt-nav-tagline {
   display: none;
   font-size: 0.72rem;
   color: var(--text-3);
-  font-weight: 500;
+  font-weight: 400;
+  letter-spacing: -0.01em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -324,10 +386,12 @@ button:focus-visible, a:focus-visible {
 .kt-icon-btn {
   width: 36px;
   height: 36px;
-  border-radius: var(--radius-md);
-  background: var(--bg-surface-1);
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-subtle);
-  color: var(--text-3);
+  color: var(--text-2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -336,13 +400,18 @@ button:focus-visible, a:focus-visible {
 }
 
 .kt-icon-btn:hover {
-  background: var(--bg-surface-2);
+  background: rgba(255, 255, 255, 0.12);
   border-color: var(--border-default);
   color: var(--text-1);
+  transform: scale(1.04);
+}
+
+.kt-icon-btn:active {
+  transform: scale(0.95);
 }
 
 .kt-icon-btn.spin svg {
-  animation: spinSync 0.75s linear infinite;
+  animation: spinApple 0.7s linear infinite;
 }
 
 /* ==================== LEAGUE / COMPETITION STRIP ==================== */
@@ -358,44 +427,53 @@ button:focus-visible, a:focus-visible {
 .kt-league-strip::-webkit-scrollbar { display: none; }
 
 .kt-league-pill {
-  padding: 5px 12px;
+  padding: 6px 14px;
   border-radius: var(--radius-full);
-  font-size: 0.75rem;
+  font-size: 0.76rem;
   font-weight: 600;
   color: var(--text-3);
-  background: var(--bg-surface-1);
-  border: 1px solid var(--border-subtle);
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-hairline);
   white-space: nowrap;
   cursor: pointer;
   transition: all var(--trans-fast);
+  letter-spacing: -0.01em;
 }
 
 .kt-league-pill:hover {
   color: var(--text-1);
-  border-color: var(--border-default);
-  background: var(--bg-surface-2);
+  border-color: var(--border-subtle);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.kt-league-pill:active {
+  transform: scale(0.97);
 }
 
 .kt-league-pill.active {
   background: var(--gold-subtle);
   color: var(--gold-light);
-  border-color: var(--gold-primary);
+  border-color: var(--gold-border);
   font-weight: 700;
 }
 
-/* ==================== LIVE STRIPE ==================== */
+/* ==================== DYNAMIC ISLAND LIVE TICKER ==================== */
 .kt-live-stripe {
   width: 100%;
-  background: var(--bg-surface-1);
+  background: rgba(28, 28, 30, 0.65);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
   border: 1px solid var(--status-live-border);
-  border-radius: var(--radius-md);
-  padding: 8px 12px;
+  border-radius: var(--radius-xl);
+  padding: 8px 14px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   overflow-x: auto;
   scrollbar-width: none;
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 .kt-live-stripe::-webkit-scrollbar { display: none; }
 
@@ -403,25 +481,25 @@ button:focus-visible, a:focus-visible {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 8px;
+  padding: 4px 10px;
   background: var(--status-live-bg);
   border: 1px solid var(--status-live-border);
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-full);
   color: var(--status-live);
   font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.05em;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .kt-live-dot {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
   background: var(--status-live);
   border-radius: 50%;
-  animation: pulseDot 1.6s infinite ease-in-out;
+  animation: pulseLive 1.8s infinite ease-in-out;
 }
 
 .kt-live-stripe-items {
@@ -434,10 +512,10 @@ button:focus-visible, a:focus-visible {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 10px;
-  background: var(--bg-surface-2);
+  padding: 5px 12px;
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-hairline);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-full);
   cursor: pointer;
   white-space: nowrap;
   transition: all var(--trans-fast);
@@ -446,11 +524,16 @@ button:focus-visible, a:focus-visible {
 
 .kt-live-item:hover {
   border-color: var(--border-default);
-  background: var(--bg-surface-3);
+  background: rgba(255, 255, 255, 0.10);
+  transform: scale(1.02);
+}
+
+.kt-live-item:active {
+  transform: scale(0.97);
 }
 
 .kt-live-item.active {
-  border-color: var(--gold-primary);
+  border-color: var(--gold-border);
   background: var(--gold-subtle);
 }
 
@@ -458,31 +541,35 @@ button:focus-visible, a:focus-visible {
   font-weight: 800;
   color: var(--status-live);
   background: var(--status-live-bg);
-  padding: 2px 6px;
-  border-radius: var(--radius-xs);
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
 }
 
-/* ==================== SPOTLIGHT HERO CARD ==================== */
+/* ==================== SPOTLIGHT HERO CARD (VISIONOS GLASS) ==================== */
 .kt-spotlight {
   position: relative;
-  background: linear-gradient(180deg, var(--bg-surface-1) 0%, #0c0f16 100%);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-xl);
-  padding: 16px;
+  background: linear-gradient(180deg, rgba(28, 28, 30, 0.75) 0%, rgba(18, 18, 20, 0.85) 100%);
+  backdrop-filter: blur(32px) saturate(190%);
+  -webkit-backdrop-filter: blur(32px) saturate(190%);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-2xl);
+  padding: 20px;
   box-shadow: var(--shadow-elevated), var(--shadow-inset);
   transition: border-color var(--trans-base);
 }
 
 @media (min-width: 640px) {
   .kt-spotlight {
-    padding: 24px;
+    padding: 26px;
     border-radius: var(--radius-2xl);
   }
 }
 
 @media (min-width: 1024px) {
   .kt-spotlight {
-    padding: 28px;
+    padding: 30px;
   }
 }
 
@@ -491,7 +578,7 @@ button:focus-visible, a:focus-visible {
   justify-content: space-between;
   align-items: center;
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 18px;
   padding-bottom: 14px;
   border-bottom: 1px solid var(--border-hairline);
 }
@@ -504,23 +591,23 @@ button:focus-visible, a:focus-visible {
 }
 
 .kt-lead-badge {
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--gold-light);
   background: var(--gold-subtle);
-  border: 1px solid var(--gold-subtle-hover);
-  padding: 4px 9px;
-  border-radius: var(--radius-xs);
+  border: 1px solid var(--gold-border);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
 }
 
 .kt-pillar-pill {
   font-size: 0.68rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
-  padding: 4px 9px;
-  border-radius: var(--radius-xs);
+  letter-spacing: -0.01em;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
   border: 1px solid;
   white-space: nowrap;
 }
@@ -532,10 +619,10 @@ button:focus-visible, a:focus-visible {
 }
 
 .kt-spotlight-nav-btn {
-  width: 28px;
-  height: 28px;
-  border-radius: var(--radius-sm);
-  background: var(--bg-surface-2);
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.06);
   border: 1px solid var(--border-subtle);
   color: var(--text-2);
   display: flex;
@@ -545,69 +632,76 @@ button:focus-visible, a:focus-visible {
 }
 
 .kt-spotlight-nav-btn:hover {
-  background: var(--bg-surface-3);
+  background: rgba(255, 255, 255, 0.12);
   color: var(--text-1);
   border-color: var(--border-default);
+  transform: scale(1.05);
+}
+
+.kt-spotlight-nav-btn:active {
+  transform: scale(0.95);
 }
 
 .kt-spotlight-counter {
   font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--text-4);
-  min-width: 32px;
+  font-weight: 600;
+  color: var(--text-3);
+  min-width: 36px;
   text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
-/* Spotlight layout: Single column on mobile, 2 columns on desktop */
+/* Spotlight layout */
 .kt-spotlight-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 20px;
+  gap: 22px;
   align-items: start;
 }
 
 @media (min-width: 860px) {
   .kt-spotlight-grid {
     grid-template-columns: 1.35fr 1fr;
-    gap: 28px;
+    gap: 30px;
   }
 }
 
 .kt-spotlight-narrative {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   min-width: 0;
 }
 
 .kt-spotlight-title {
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   line-height: 1.25;
   color: var(--text-1);
   margin: 0;
+  letter-spacing: -0.025em;
   word-break: break-word;
   overflow-wrap: break-word;
 }
 
 @media (min-width: 640px) {
   .kt-spotlight-title {
-    font-size: 1.55rem;
+    font-size: 1.6rem;
   }
 }
 
 @media (min-width: 1024px) {
   .kt-spotlight-title {
-    font-size: 1.75rem;
+    font-size: 1.85rem;
   }
 }
 
 .kt-spotlight-body {
-  font-size: 0.92rem;
+  font-size: 0.94rem;
   color: var(--text-2);
-  line-height: 1.68;
+  line-height: 1.62;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   overflow-wrap: break-word;
   word-break: break-word;
   max-height: 380px;
@@ -615,20 +709,14 @@ button:focus-visible, a:focus-visible {
   padding-right: 4px;
 }
 
-.kt-spotlight-body p { margin: 0; }
+.kt-spotlight-body p {
+  margin: 0;
+  white-space: pre-line;
+}
+
 .kt-spotlight-body strong, .kt-spotlight-body b {
   color: var(--text-1);
   font-weight: 700;
-}
-.kt-spotlight-body ul {
-  margin: 0;
-  padding-left: 18px;
-}
-.kt-spotlight-body li {
-  margin-bottom: 4px;
-}
-.kt-spotlight-body li::marker {
-  color: var(--gold-primary);
 }
 
 /* Matchup Banner inside Spotlight */
@@ -636,15 +724,16 @@ button:focus-visible, a:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  background: var(--bg-surface-2);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 16px;
+  background: rgba(0, 0, 0, 0.40);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-xl);
+  padding: 18px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 @media (min-width: 640px) {
   .kt-spotlight-visual {
-    padding: 20px;
+    padding: 22px;
   }
 }
 
@@ -666,21 +755,22 @@ button:focus-visible, a:focus-visible {
 }
 
 .kt-crest-container {
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   border-radius: var(--radius-full);
-  background: var(--bg-surface-1);
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
 }
 
 @media (min-width: 640px) {
   .kt-crest-container {
-    width: 52px;
-    height: 52px;
+    width: 56px;
+    height: 56px;
   }
 }
 
@@ -699,17 +789,18 @@ button:focus-visible, a:focus-visible {
 
 .kt-crest-fallback {
   font-size: 0.95rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--text-3);
   font-family: var(--font-display);
 }
 
 .kt-spotlight-team-name {
-  font-size: 0.78rem;
+  font-size: 0.82rem;
   font-weight: 700;
   color: var(--text-1);
   text-align: center;
-  line-height: 1.2;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
   word-break: break-word;
   overflow-wrap: break-word;
   max-width: 100%;
@@ -717,7 +808,7 @@ button:focus-visible, a:focus-visible {
 
 @media (min-width: 640px) {
   .kt-spotlight-team-name {
-    font-size: 0.85rem;
+    font-size: 0.88rem;
   }
 }
 
@@ -730,24 +821,25 @@ button:focus-visible, a:focus-visible {
 }
 
 .kt-spotlight-vs {
-  font-size: 0.7rem;
-  font-weight: 800;
+  font-size: 0.72rem;
+  font-weight: 700;
   color: var(--text-4);
-  background: var(--bg-surface-1);
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-subtle);
-  padding: 4px 8px;
-  border-radius: var(--radius-xs);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
 }
 
 .kt-spotlight-score-big {
-  font-size: 1.35rem;
+  font-size: 1.45rem;
   font-weight: 800;
   color: var(--text-1);
-  background: var(--bg-surface-1);
-  padding: 4px 12px;
-  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 4px 14px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border-subtle);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
+  font-family: var(--font-mono);
 }
 
 .kt-spotlight-meta {
@@ -758,36 +850,36 @@ button:focus-visible, a:focus-visible {
 }
 
 .kt-meta-chip {
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 600;
   color: var(--text-3);
-  background: var(--bg-surface-1);
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--border-hairline);
-  padding: 3px 8px;
-  border-radius: var(--radius-xs);
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
   white-space: nowrap;
 }
 
 /* Pillar switcher segmented tabs */
 .kt-spotlight-pillars {
   display: flex;
-  gap: 4px;
+  gap: 6px;
   flex-wrap: wrap;
   justify-content: center;
-  padding-top: 12px;
-  border-top: 1px solid var(--border-subtle);
+  padding-top: 14px;
+  border-top: 1px solid var(--border-hairline);
   width: 100%;
 }
 
 .kt-pillar-tab-btn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 0.7rem;
+  gap: 6px;
+  font-size: 0.72rem;
   font-weight: 600;
-  padding: 4px 8px;
-  border-radius: var(--radius-xs);
-  background: var(--bg-surface-1);
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--border-subtle);
   color: var(--text-3);
   transition: all var(--trans-fast);
@@ -795,16 +887,21 @@ button:focus-visible, a:focus-visible {
 }
 
 .kt-pillar-tab-btn:hover {
-  background: var(--bg-surface-3);
+  background: rgba(255, 255, 255, 0.08);
   color: var(--text-1);
   border-color: var(--border-default);
 }
 
+.kt-pillar-tab-btn:active {
+  transform: scale(0.97);
+}
+
 .kt-pillar-tab-btn.active {
-  background: var(--bg-surface-3);
+  background: rgba(255, 255, 255, 0.12);
   color: var(--text-1);
   border-color: var(--border-highlight);
   font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .kt-tab-indicator {
@@ -814,11 +911,15 @@ button:focus-visible, a:focus-visible {
   flex-shrink: 0;
 }
 
-/* ==================== DASHBOARD SPLIT VIEW ==================== */
+/* ==================== DASHBOARD VIEW SWITCHER TABS ==================== */
 .kt-dashboard-view-tabs {
   display: flex;
   gap: 6px;
   margin-bottom: 12px;
+  background: rgba(118, 118, 128, 0.16);
+  padding: 3px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-hairline);
 }
 
 @media (min-width: 992px) {
@@ -829,23 +930,26 @@ button:focus-visible, a:focus-visible {
 
 .kt-view-tab {
   flex: 1;
-  padding: 8px 12px;
+  padding: 8px 14px;
   font-size: 0.8rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text-3);
-  background: var(--bg-surface-1);
-  border: 1px solid var(--border-subtle);
+  background: transparent;
+  border: none;
   border-radius: var(--radius-sm);
   text-align: center;
   transition: all var(--trans-fast);
+  cursor: pointer;
 }
 
 .kt-view-tab.active {
-  background: var(--bg-surface-2);
+  background: rgba(255, 255, 255, 0.12);
   color: var(--text-1);
-  border-color: var(--gold-primary);
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 
+/* ==================== SPLIT COLUMNS ==================== */
 .kt-split {
   display: grid;
   grid-template-columns: 1fr;
@@ -861,16 +965,18 @@ button:focus-visible, a:focus-visible {
 }
 
 .kt-column {
-  background: var(--bg-surface-1);
+  background: rgba(24, 24, 27, 0.65);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 16px;
+  border-radius: var(--radius-xl);
+  padding: 18px;
   box-shadow: var(--shadow-card), var(--shadow-inset);
 }
 
 @media (min-width: 640px) {
   .kt-column {
-    padding: 20px;
+    padding: 22px;
   }
 }
 
@@ -879,26 +985,27 @@ button:focus-visible, a:focus-visible {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
-  padding-bottom: 10px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--border-hairline);
 }
 
 .kt-column-title {
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--text-1);
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  letter-spacing: -0.02em;
 }
 
 .kt-column-badge {
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  padding: 2px 8px;
+  padding: 2px 9px;
   border-radius: var(--radius-full);
-  background: var(--bg-surface-2);
+  background: rgba(255, 255, 255, 0.06);
   color: var(--text-3);
   border: 1px solid var(--border-hairline);
 }
@@ -906,7 +1013,7 @@ button:focus-visible, a:focus-visible {
 .kt-column-badge.gold {
   background: var(--gold-subtle);
   color: var(--gold-light);
-  border-color: var(--gold-subtle-hover);
+  border-color: var(--gold-border);
 }
 
 .kt-column-badge.green {
@@ -918,29 +1025,29 @@ button:focus-visible, a:focus-visible {
 .kt-column-content {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
 }
 
 .kt-column-empty {
   text-align: center;
-  padding: 32px 16px;
+  padding: 36px 16px;
   color: var(--text-4);
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   border: 1px dashed var(--border-subtle);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
 }
 
 .kt-date-group {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .kt-date-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 4px;
+  padding-bottom: 2px;
 }
 
 .kt-date-label {
@@ -952,7 +1059,7 @@ button:focus-visible, a:focus-visible {
 }
 
 .kt-date-count {
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   color: var(--text-4);
 }
 
@@ -970,9 +1077,9 @@ button:focus-visible, a:focus-visible {
 }
 
 .kt-match {
-  background: var(--bg-surface-2);
+  background: rgba(255, 255, 255, 0.035);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   padding: 14px;
   box-shadow: var(--shadow-sm);
   transition: all var(--trans-fast);
@@ -986,12 +1093,16 @@ button:focus-visible, a:focus-visible {
 .kt-match:hover {
   transform: translateY(-2px);
   border-color: var(--border-default);
-  background: var(--bg-surface-3);
+  background: rgba(255, 255, 255, 0.065);
   box-shadow: var(--shadow-card);
 }
 
+.kt-match:active {
+  transform: scale(0.985);
+}
+
 .kt-match.active {
-  border-color: var(--gold-primary);
+  border-color: var(--gold-border);
   background: var(--gold-subtle);
 }
 
@@ -1003,7 +1114,7 @@ button:focus-visible, a:focus-visible {
 }
 
 .kt-match-stage {
-  font-size: 0.65rem;
+  font-size: 0.66rem;
   font-weight: 700;
   color: var(--text-3);
   text-transform: uppercase;
@@ -1029,8 +1140,8 @@ button:focus-visible, a:focus-visible {
   color: var(--status-live);
   background: var(--status-live-bg);
   border: 1px solid var(--status-live-border);
-  padding: 2px 6px;
-  border-radius: var(--radius-xs);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
 }
 
 .kt-match-ft {
@@ -1039,8 +1150,8 @@ button:focus-visible, a:focus-visible {
   color: var(--status-ft);
   background: var(--status-ft-bg);
   border: 1px solid var(--status-ft-border);
-  padding: 2px 6px;
-  border-radius: var(--radius-xs);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
 }
 
 .kt-match-teams {
@@ -1067,7 +1178,7 @@ button:focus-visible, a:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg-surface-1);
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--border-hairline);
   flex-shrink: 0;
 }
@@ -1079,17 +1190,18 @@ button:focus-visible, a:focus-visible {
 }
 
 .kt-match-crest-fallback {
-  font-size: 0.75rem;
-  font-weight: 800;
-  color: var(--text-4);
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-3);
   font-family: var(--font-display);
 }
 
 .kt-match-team-name {
-  font-size: 0.75rem;
+  font-size: 0.76rem;
   font-weight: 700;
   color: var(--text-1);
   text-align: center;
+  letter-spacing: -0.015em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1098,12 +1210,12 @@ button:focus-visible, a:focus-visible {
 
 .kt-match-vs {
   font-size: 0.65rem;
-  font-weight: 800;
+  font-weight: 700;
   color: var(--text-4);
-  background: var(--bg-surface-1);
+  background: rgba(255, 255, 255, 0.04);
   border: 1px solid var(--border-hairline);
-  padding: 3px 6px;
-  border-radius: var(--radius-xs);
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
   flex-shrink: 0;
 }
 
@@ -1111,10 +1223,11 @@ button:focus-visible, a:focus-visible {
   font-size: 0.95rem;
   font-weight: 800;
   color: var(--text-1);
-  background: var(--bg-surface-1);
-  padding: 3px 8px;
-  border-radius: var(--radius-xs);
-  border: 1px solid var(--border-hairline);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  font-family: var(--font-mono);
   flex-shrink: 0;
 }
 
@@ -1126,9 +1239,9 @@ button:focus-visible, a:focus-visible {
 }
 
 .kt-match-snippet-title {
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   color: var(--text-3);
-  line-height: 1.38;
+  line-height: 1.4;
   margin: 0;
   font-weight: 500;
   display: -webkit-box;
@@ -1144,7 +1257,7 @@ button:focus-visible, a:focus-visible {
   justify-content: space-between;
   border-top: 1px solid var(--border-hairline);
   padding-top: 8px;
-  font-size: 0.68rem;
+  font-size: 0.7rem;
 }
 
 .kt-match-date {
@@ -1154,7 +1267,7 @@ button:focus-visible, a:focus-visible {
 
 .kt-match-pillars {
   display: flex;
-  gap: 4px;
+  gap: 5px;
 }
 
 .kt-match-pillar-dot {
@@ -1168,30 +1281,35 @@ button:focus-visible, a:focus-visible {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 12px;
-  padding-top: 12px;
+  margin-top: 14px;
+  padding-top: 14px;
   border-top: 1px solid var(--border-hairline);
 }
 
 .kt-copy-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: var(--bg-surface-2);
+  gap: 7px;
+  background: rgba(255, 255, 255, 0.08);
   border: 1px solid var(--border-subtle);
-  color: var(--text-3);
-  font-size: 0.72rem;
+  color: var(--text-2);
+  font-size: 0.74rem;
   font-weight: 600;
-  padding: 6px 12px;
-  border-radius: var(--radius-xs);
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
   cursor: pointer;
   transition: all var(--trans-fast);
 }
 
 .kt-copy-btn:hover {
-  background: var(--bg-surface-3);
+  background: rgba(255, 255, 255, 0.14);
   color: var(--text-1);
   border-color: var(--border-default);
+  transform: scale(1.02);
+}
+
+.kt-copy-btn:active {
+  transform: scale(0.96);
 }
 
 .kt-copy-btn.copied {
@@ -1200,66 +1318,106 @@ button:focus-visible, a:focus-visible {
   background: var(--status-ft-bg);
 }
 
-/* ==================== BUTTONS ==================== */
+/* ==================== BUTTONS (APPLE HIG STANDARDS) ==================== */
 .kt-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   background: var(--gold-primary);
   color: #000000;
-  padding: 8px 18px;
-  border-radius: var(--radius-sm);
-  font-size: 0.82rem;
+  padding: 10px 20px;
+  border-radius: var(--radius-full);
+  font-size: 0.84rem;
   font-weight: 700;
   cursor: pointer;
   transition: all var(--trans-fast);
+  box-shadow: 0 2px 10px rgba(255, 214, 10, 0.25);
+  border: none;
 }
 
 .kt-btn:hover {
   background: var(--gold-light);
+  transform: scale(1.02);
+}
+
+.kt-btn:active {
+  transform: scale(0.96);
 }
 
 .kt-btn:disabled {
-  opacity: 0.45;
+  opacity: 0.40;
   cursor: not-allowed;
+  transform: none;
+}
+
+.kt-btn-primary {
+  background: var(--gold-primary);
+  color: #000000;
 }
 
 .kt-btn-secondary {
-  background: var(--bg-surface-2);
+  background: rgba(255, 255, 255, 0.08);
   border: 1px solid var(--border-subtle);
-  color: var(--text-2);
+  color: var(--text-1);
+  box-shadow: none;
 }
 
 .kt-btn-secondary:hover {
-  background: var(--bg-surface-3);
-  color: var(--text-1);
+  background: rgba(255, 255, 255, 0.14);
   border-color: var(--border-default);
+}
+
+.kt-btn-danger {
+  background: var(--status-live-bg);
+  border: 1px solid var(--status-live-border);
+  color: var(--status-live);
+  box-shadow: none;
+}
+
+.kt-btn-danger:hover {
+  background: rgba(255, 69, 58, 0.22);
+  border-color: var(--status-live);
+}
+
+.kt-btn-ghost {
+  background: transparent;
+  color: var(--text-3);
+  border: 1px solid var(--border-hairline);
+  box-shadow: none;
+}
+
+.kt-btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-1);
 }
 
 /* ==================== SKELETONS ==================== */
 .kt-skeleton {
   background: linear-gradient(90deg,
     rgba(255, 255, 255, 0.03) 25%,
-    rgba(255, 255, 255, 0.07) 50%,
+    rgba(255, 255, 255, 0.08) 50%,
     rgba(255, 255, 255, 0.03) 75%
   );
   background-size: 200% 100%;
-  animation: shimmerCard 1.5s infinite linear;
-  border-radius: var(--radius-xs);
+  animation: shimmerApple 1.6s infinite linear;
+  border-radius: var(--radius-sm);
 }
 
 /* ==================== EMPTY & ERROR STATES ==================== */
 .kt-empty {
-  background: var(--bg-surface-1);
+  background: rgba(28, 28, 30, 0.70);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xl);
-  padding: 48px 24px;
+  border-radius: var(--radius-2xl);
+  padding: 56px 28px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   text-align: center;
+  box-shadow: var(--shadow-card);
 }
 
 .kt-empty-icon {
@@ -1271,42 +1429,45 @@ button:focus-visible, a:focus-visible {
 }
 
 .kt-empty h2 {
-  font-size: 1.15rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--text-1);
 }
 
 .kt-empty p {
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   color: var(--text-3);
-  max-width: 380px;
+  max-width: 400px;
+  line-height: 1.5;
 }
 
 .kt-spinner {
-  width: 24px;
-  height: 24px;
-  border: 2px solid var(--border-subtle);
+  width: 26px;
+  height: 26px;
+  border: 2px solid rgba(255, 255, 255, 0.12);
   border-top-color: var(--gold-primary);
   border-radius: 50%;
-  animation: spinSync 0.8s linear infinite;
+  animation: spinApple 0.8s linear infinite;
 }
 
 .kt-error-msg {
   color: var(--status-live);
   background: var(--status-live-bg);
   border: 1px solid var(--status-live-border);
-  padding: 8px 14px;
-  border-radius: var(--radius-xs);
-  font-size: 0.78rem;
+  padding: 10px 16px;
+  border-radius: var(--radius-md);
+  font-size: 0.8rem;
 }
 
-/* ==================== ADMIN DRAWER ==================== */
+/* ==================== ADMIN MODAL (FROSTED APPLE SHEET) ==================== */
 .kt-admin-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   z-index: 1000;
+  animation: appleFadeIn 0.25s ease-out;
 }
 
 .kt-admin-panel {
@@ -1315,37 +1476,72 @@ button:focus-visible, a:focus-visible {
   right: 0;
   bottom: 0;
   width: 100%;
-  max-width: 360px;
-  background: var(--bg-surface-1);
+  max-width: 380px;
+  background: rgba(28, 28, 30, 0.90);
+  backdrop-filter: blur(36px) saturate(200%);
+  -webkit-backdrop-filter: blur(36px) saturate(200%);
   border-left: 1px solid var(--border-default);
   box-shadow: var(--shadow-elevated);
   padding: 24px;
   z-index: 1001;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
   overflow-y: auto;
+  animation: appleFadeIn 0.3s var(--ease-spring);
 }
 
 .kt-admin-close {
   align-self: flex-end;
   color: var(--text-3);
-  padding: 4px;
-  border-radius: var(--radius-xs);
+  padding: 6px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .kt-admin-close:hover {
   color: var(--text-1);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.kt-admin-header-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.kt-admin-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-1);
+  letter-spacing: -0.02em;
+}
+
+.kt-admin-desc {
+  font-size: 0.8rem;
+  color: var(--text-3);
+  margin: 0;
+  line-height: 1.45;
+}
+
+.kt-admin-action-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .kt-admin-log {
   background: #000000;
-  padding: 12px;
-  border-radius: var(--radius-xs);
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-size: 0.72rem;
+  padding: 14px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
   color: var(--gold-light);
-  max-height: 160px;
+  max-height: 180px;
   overflow-y: auto;
   border: 1px solid var(--border-subtle);
   line-height: 1.5;
@@ -1354,13 +1550,15 @@ button:focus-visible, a:focus-visible {
 /* ==================== FLOATING QUICK SCROLL ==================== */
 .kt-floating-logo {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 38px;
-  height: 38px;
+  bottom: 24px;
+  right: 24px;
+  width: 42px;
+  height: 42px;
   border-radius: var(--radius-full);
-  background: var(--bg-surface-1);
-  border: 1px solid var(--border-subtle);
+  background: rgba(28, 28, 30, 0.80);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-default);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1368,18 +1566,17 @@ button:focus-visible, a:focus-visible {
   box-shadow: var(--shadow-card);
   cursor: pointer;
   transition: all var(--trans-fast);
+  color: var(--text-2);
 }
 
 .kt-floating-logo:hover {
-  border-color: var(--gold-primary);
-  background: var(--bg-surface-2);
-  transform: translateY(-2px);
+  border-color: var(--gold-border);
+  color: var(--gold-light);
+  transform: scale(1.08) translateY(-2px);
 }
 
-.kt-floating-logo img {
-  width: 20px;
-  height: 20px;
-  object-fit: contain;
+.kt-floating-logo:active {
+  transform: scale(0.94);
 }
 
 /* ==================== ULTRA-SMALL SCREEN TUNING (< 360px) ==================== */
@@ -1389,25 +1586,25 @@ button:focus-visible, a:focus-visible {
     gap: 16px;
   }
   .kt-spotlight {
-    padding: 12px;
-    border-radius: var(--radius-lg);
+    padding: 14px;
+    border-radius: var(--radius-xl);
   }
   .kt-spotlight-title {
-    font-size: 1.15rem;
+    font-size: 1.2rem;
   }
   .kt-crest-container {
-    width: 38px;
-    height: 38px;
+    width: 40px;
+    height: 40px;
   }
   .kt-crest-img {
     max-width: 26px;
     max-height: 26px;
   }
   .kt-spotlight-team-name {
-    font-size: 0.72rem;
+    font-size: 0.74rem;
   }
   .kt-column {
-    padding: 12px;
+    padding: 14px;
   }
   .kt-match {
     padding: 12px 10px;

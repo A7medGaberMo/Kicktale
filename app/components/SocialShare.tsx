@@ -37,15 +37,16 @@ export const CopyBlock: React.FC<CopyBlockProps> = ({
     const plainContent = stripMarkdown(insightContent);
     const matchup = `${homeTeam} vs ${awayTeam}`;
     const scoreline = score ? ` (${score})` : "";
-    const comp = competition ? ` [${competition}]` : "";
+    const compTag = competition ? ` #${competition.replace(/\s+/g, '')}` : "";
+    const homeTag = `#${homeTeam.replace(/\s+/g, '')}`;
+    const awayTag = `#${awayTeam.replace(/\s+/g, '')}`;
 
-    return `${insightTitle}
-
-${matchup}${scoreline}${comp}
+    return `🔥 ${insightTitle}
+⚽ ${matchup}${scoreline}
 
 ${plainContent}
 
-— Kicktale AI Match Intelligence`;
+#Kicktale ${homeTag} ${awayTag}${compTag}`;
   }, [competition, homeTeam, awayTeam, insightTitle, insightContent, score]);
 
   const handleCopy = useCallback(async () => {
@@ -74,13 +75,13 @@ ${plainContent}
       <button
         className={`kt-copy-btn ${copied ? "copied" : ""}`}
         onClick={handleCopy}
-        aria-label="Copy story to clipboard"
+        aria-label="Copy 2-3 line post to clipboard"
       >
         {copied ? (
           <>
             <svg
-              width="13"
-              height="13"
+              width="14"
+              height="14"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -90,24 +91,24 @@ ${plainContent}
             >
               <polyline points="20 6 9 17 4 12" />
             </svg>
-            <span>Copied to clipboard</span>
+            <span>Copied Post</span>
           </>
         ) : (
           <>
             <svg
-              width="13"
-              height="13"
+              width="14"
+              height="14"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth="2.2"
               strokeLinecap="round"
               strokeLinejoin="round"
             >
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+              <rect x="9" y="9" width="13" height="13" rx="3" ry="3" />
               <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
             </svg>
-            <span>Copy Narrative</span>
+            <span>Copy Post (2-3 Lines)</span>
           </>
         )}
       </button>

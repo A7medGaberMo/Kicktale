@@ -31,9 +31,9 @@ export function isPublishableInsight(insight: any): boolean {
   const words = countWords(content);
 
   if (!VALID_INSIGHT_TYPES.has(insight.insight_type)) return false;
-  if (!title || title.split(/\s+/).length < 3) return false;
-  if (!content || words < 25 || words > 150) return false;
-  if (!evidence || evidence.length < 15) return false;
+  if (!title || title.split(/\s+/).length < 2) return false;
+  if (!content || words < 10 || words > 100) return false;
+  if (!evidence || evidence.length < 8) return false;
   if (BAD_CONTENT_PATTERNS.some(pattern => pattern.test(title) || pattern.test(content) || pattern.test(evidence))) {
     return false;
   }

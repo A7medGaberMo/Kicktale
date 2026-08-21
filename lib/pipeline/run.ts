@@ -39,8 +39,11 @@ export async function runPipelineForFixture(
     const awayName = fixture.awayTeam?.name || 'Away';
 
     // 1. Basic fixture upsert
-    const scoreStr = fixture.score?.fullTime?.home !== null && fixture.score?.fullTime?.home !== undefined
-      ? `${fixture.score.fullTime.home}-${fixture.score.fullTime.away}`
+    const rawScore: any = fixture.score;
+    const scoreHome = rawScore?.fullTime?.home ?? rawScore?.regularTime?.home ?? rawScore?.current?.home ?? rawScore?.halfTime?.home;
+    const scoreAway = rawScore?.fullTime?.away ?? rawScore?.regularTime?.away ?? rawScore?.current?.away ?? rawScore?.halfTime?.away;
+    const scoreStr = (scoreHome !== null && scoreHome !== undefined && scoreAway !== null && scoreAway !== undefined)
+      ? `${scoreHome}-${scoreAway}`
       : null;
     const createdAtStr = new Date().toISOString();
 
@@ -120,7 +123,8 @@ export async function runPipelineForFixture(
       };
     }
 
-    console.log(`[Pipeline] Generating 3 Story Stats for: ${homeName} vs ${awayName} (ID: ${fixture.id})`);
+    const isLive = s === 'LIVE' || s === 'IN_PLAY' || s === 'PAUSED' || s === 'EXTRA_TIME' || s === 'PENALTY_SHOOTOUT' || s === 'HT';
+    console.log(`[Pipeline] Generating Direct 2-3 Line Insights for: ${homeName} vs ${awayName} (ID: ${fixture.id}, Status: ${fixture.status})`);
 
     // 4. Fetch H2H context if available
     let h2hSummary = '';
@@ -134,23 +138,23 @@ export async function runPipelineForFixture(
       // Optional enhancement, safe to proceed without blocking
     }
 
-    // 5. Single-pass LLM prompt for the 3 core story stats
-    const systemPrompt = `You are Kicktale's Chief Football Storyteller — writing premier, fact-anchored football match narratives at the standard of The Athletic and Opta Analyst.
+    // 5. Single-pass LLM prompt for DIRECT 2-3 line story insights
+    const systemPrompt = `You are Kicktale's Chief Football Storyteller — writing ultra-sharp, direct match insights for immediate social posting (X/Twitter, Telegram, WhatsApp).
 Kicktale's core ethos is: "Every match tells a story."
 
-Generate EXACTLY 3 distinct, high-impact match story insights for this marquee fixture:
+Generate EXACTLY 3 distinct, direct match story insights for this marquee fixture:
 
-1. "RecordWatch": Landmark milestone, historical dominance, or rivalry record (e.g. unbeaten streak at venue, all-time record chase, landmark goals).
-2. "FormMomentum": Form trajectory, scoring surge, defensive run, or momentum trend entering this match.
-3. "StakesContext": High stakes, title/qualification race implications, or what a win/loss concretely means for both clubs.
+1. "RecordWatch": Landmark milestone, historical dominance, or head-to-head record (e.g. unbeaten streaks, all-time record chase, landmark goals).
+2. "FormMomentum": Form surge, scoring momentum, defensive streak, or key in-form player trend.
+3. "StakesContext": High stakes, table implications, qualification scenarios, or what a win/loss concretely decides.
 
 CRITICAL RULES:
-- Exactly 3 insights (one for each type: RecordWatch, FormMomentum, StakesContext).
-- NO tactical chalkboard jargon, tactical formation schemes, or news gossip. Focus purely on compelling stats, records, form, and stakes.
-- Titles must be 5-10 word high-impact headlines with NO markdown asterisks, hashes, or quotes. Anchor on specific numbers and names.
-- Content must be concise and punchy: 50-90 words in 1 tight paragraph with bolded numbers.
-- Evidence must be a single crisp sentence stating the key quantitative stat.
+- DIRECT INSIGHTS ONLY. NEVER write an essay, preview article, or long report.
+- EXACTLY 2 TO 3 LINES PER INSIGHT (25 to 45 words total). Every line must deliver a direct, punchy fact with **bolded numbers**.
+- Headlines must be 5 to 9 words, clean, plain text with NO markdown symbols (no **, no #, no quotes). Anchor on specific names and stats.
+- Evidence must be a single crisp stat sentence.
 - Do NOT include internal scores, confidence percentages, or the word "Analysis:".
+- Content must be ready for 1-click social posting.
 
 OUTPUT FORMAT (strict JSON):
 {
@@ -158,34 +162,35 @@ OUTPUT FORMAT (strict JSON):
     {
       "insight_type": "RecordWatch",
       "entity_name": "${homeName} vs ${awayName}",
-      "title": "Clean Punchy Headline Anchored On Stat",
-      "content": "Concise, punchy analytical paragraph (50-90 words) with **bolded numbers** and key historical/milestone facts.",
+      "title": "Clean Headline Anchored On Key Stat",
+      "content": "Line 1: Direct fact or streak with **bolded numbers**.\\nLine 2: Supporting historical or matchup record.\\nLine 3: What this milestone means tonight.",
       "evidence": "Specific stat: e.g. Unbeaten in 14 home meetings since 2018."
     },
     {
       "insight_type": "FormMomentum",
       "entity_name": "${homeName}",
-      "title": "Clean Headline On Form And Momentum",
-      "content": "Concise paragraph (50-90 words) analyzing current form streak and scoring momentum.",
+      "title": "Clean Headline On Form Surge",
+      "content": "Line 1: Current form streak with **bolded numbers**.\\nLine 2: Attacking or defensive metrics across recent games.\\nLine 3: Key momentum factor.",
       "evidence": "Specific stat: e.g. 19 points from last 21 available with 2.4 goals per game."
     },
     {
       "insight_type": "StakesContext",
       "entity_name": "${awayName}",
-      "title": "Clean Headline On Match Stakes And Permutations",
-      "content": "Concise paragraph (50-90 words) analyzing table stakes and qualification consequences.",
+      "title": "Clean Headline On Match Stakes",
+      "content": "Line 1: Table or knockout standing with **bolded numbers**.\\nLine 2: Mathematical scenario for win vs defeat.\\nLine 3: Concrete tournament implication.",
       "evidence": "Specific stat: e.g. A win opens a 5-point gap in the Champions League qualification race."
     }
   ]
 }`;
 
-
     const userPrompt = `Fixture: ${homeName} vs ${awayName}
 Competition: ${competitionCode}
 Kickoff: ${fixture.utcDate}
+Status: ${fixture.status}${scoreStr ? ` (Current Score: ${scoreStr})` : ''}
+${isLive ? 'NOTE: THIS MATCH IS CURRENTLY LIVE IN-PLAY.' : ''}
 ${h2hSummary ? `Official Data: ${h2hSummary}` : ''}
 
-Synthesize the 3 premier story stats for this fixture now.`;
+Generate the 3 direct, 2-3 line social-ready insights now.`;
 
     const llmResponse = await generateJSON<LLMStoryStatOutput>(systemPrompt, userPrompt);
     const generatedInsights = (llmResponse.insights || []).slice(0, 3);
@@ -233,7 +238,7 @@ Synthesize the 3 premier story stats for this fixture now.`;
       };
 
       if (!isPublishableInsight(candidate)) {
-        if (cleanContent.length < 50 || cleanTitle.length < 5) continue;
+        if (cleanContent.length < 20 || cleanTitle.length < 3) continue;
       }
 
       await db.execute(
@@ -254,12 +259,12 @@ Synthesize the 3 premier story stats for this fixture now.`;
       pillarsUsed.push(candidate.insight_type);
     }
 
-    console.log(`[Pipeline] Successfully saved ${savedCount} story stats for ${homeName} vs ${awayName}`);
+    console.log(`[Pipeline] Successfully saved ${savedCount} direct insights for ${homeName} vs ${awayName}`);
     return {
       fixtureId: fixture.id,
       success: savedCount > 0,
       insightsCount: savedCount,
-      message: `Generated and saved ${savedCount} story stats in 1 single-pass request`,
+      message: `Generated and saved ${savedCount} direct 2-3 line insights`,
       pillarsUsed
     };
 
